@@ -9,18 +9,18 @@
 
 ```ts
 // Sanitize input
-import DOMPurify from 'dompurify'
+import DOMPurify from 'dompurify';
 
-const safeInput = DOMPurify.sanitize(userInput)
+const safeInput = DOMPurify.sanitize(userInput);
 ```
 
 ```ts
 // Secure storage example
-import EncryptedStorage from 'react-native-encrypted-storage'
+import EncryptedStorage from 'react-native-encrypted-storage';
 
-await EncryptedStorage.setItem('auth_token', 'your-token')
+await EncryptedStorage.setItem('auth_token', 'your-token');
 
-const token = await EncryptedStorage.getItem('auth_token')
+const token = await EncryptedStorage.getItem('auth_token');
 ```
 
 ```ts
@@ -30,7 +30,7 @@ fetch('https://api.example.com/data', {
   headers: {
     Authorization: `Bearer ${token}`,
   },
-})
+});
 ```
 
 ```ts

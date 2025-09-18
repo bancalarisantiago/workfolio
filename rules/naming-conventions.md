@@ -11,6 +11,7 @@
   - `should` → conditional logic (`shouldRender`, `shouldRetry`)
 
 ### ✅ Good
+
 ```bash
 components/auth-wizard/
 screens/user-profile/
@@ -18,6 +19,7 @@ lib/form-validation/
 ```
 
 ### ❌ Bad
+
 ```bash
 Components/AuthWizard/
 Screens/UserProfile/
@@ -40,6 +42,7 @@ import AuthForm from '@/components/auth-wizard'
 ```
 
 ### ✅ Good
+
 ```bash
 components/UserCard/index.tsx
 components/UserCard/styles.ts

@@ -9,25 +9,26 @@
 
 ```tsx
 // Root layout (App.tsx or _layout.tsx)
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function Layout() {
   return (
     <SafeAreaProvider>
       <Slot />
     </SafeAreaProvider>
-  )
+  );
 }
 ```
 
 ```tsx
 // In a screen
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Text>My Profile</Text>
     </SafeAreaView>
-  )
+  );
 }
+```

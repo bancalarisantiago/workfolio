@@ -10,34 +10,38 @@
 ```ts
 // ✅ Good
 function formatDate(date: Date): string {
-  return date.toLocaleDateString()
+  return date.toLocaleDateString();
 }
 
 // ❌ Avoid
 const formatDate = (date: Date): string => {
-  return date.toLocaleDateString()
-}
+  return date.toLocaleDateString();
+};
 ```
 
 ```ts
 // ✅ Good
-if (!user) return null
+if (!user) return null;
 
 // ❌ Bad
 if (!user) {
-  return null
+  return null;
 }
 ```
 
 ```tsx
 // ✅ Good
-{isLoading ? <ActivityIndicator /> : <UserProfile />}
+{
+  isLoading ? <ActivityIndicator /> : <UserProfile />;
+}
 
 // ❌ Bad
-{(() => {
-  if (isLoading) return <ActivityIndicator />
-  return <UserProfile />
-})()}
+{
+  (() => {
+    if (isLoading) return <ActivityIndicator />;
+    return <UserProfile />;
+  })();
+}
 ```
 
 ### ✅ Recommended Prettier config

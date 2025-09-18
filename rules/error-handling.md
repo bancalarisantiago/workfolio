@@ -11,40 +11,40 @@
 
 ```ts
 // ✅ Zod validation
-import { z } from 'zod'
+import { z } from 'zod';
 
 const UserSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-})
+});
 
-const response = await fetch('/api/user')
-const data = await response.json()
-const user = UserSchema.parse(data)
+const response = await fetch('/api/user');
+const data = await response.json();
+const user = UserSchema.parse(data);
 ```
 
 ```tsx
 // ✅ Zod with React Hook Form in a functional component
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { View, TextInput, Button, Text } from 'react-native'
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { View, TextInput, Button, Text } from 'react-native';
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-})
+});
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof schema>;
 
 export function LoginForm() {
   const { control, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(schema),
-  })
+  });
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
-  }
+    console.log(data);
+  };
 
   return (
     <View>
@@ -52,43 +52,55 @@ export function LoginForm() {
         control={control}
         name="email"
         render={({ field: { onChange, value } }) => (
-          <TextInput value={value} onChangeText={onChange} placeholder="Email" />
+          <TextInput
+            value={value}
+            onChangeText={onChange}
+            placeholder="Email"
+          />
         )}
       />
       <Controller
         control={control}
         name="password"
         render={({ field: { onChange, value } }) => (
-          <TextInput value={value} onChangeText={onChange} placeholder="Password" secureTextEntry />
+          <TextInput
+            value={value}
+            onChangeText={onChange}
+            placeholder="Password"
+            secureTextEntry
+          />
         )}
       />
-      <Button title="Submit" onPress={handleSubmit(onSubmit)} />
+      <Button
+        title="Submit"
+        onPress={handleSubmit(onSubmit)}
+      />
     </View>
-  )
+  );
 }
 ```
 
 ```ts
 // ✅ Early return
-if (!user) return null
+if (!user) return null;
 
 // ❌ Bad: unnecessary nesting
 if (user) {
   // ...
 } else {
-  return null
+  return null;
 }
 ```
 
 ```tsx
 // ✅ Global error boundary using expo-error-reporter
-import { ErrorBoundary } from 'expo-error-reporter'
+import { ErrorBoundary } from 'expo-error-reporter';
 
 export default function AppWithBoundary() {
   return (
     <ErrorBoundary>
       <RootLayout />
     </ErrorBoundary>
-  )
+  );
 }
 ```

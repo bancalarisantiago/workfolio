@@ -19,14 +19,14 @@
 
 ```ts
 // Responsive check with useWindowDimensions
-const { width } = useWindowDimensions()
-const isTablet = width >= 768
+const { width } = useWindowDimensions();
+const isTablet = width >= 768;
 ```
 
 ```ts
 // Dynamic theme
-const colorScheme = useColorScheme()
-const background = colorScheme === 'dark' ? '#000' : '#fff'
+const colorScheme = useColorScheme();
+const background = colorScheme === 'dark' ? '#000' : '#fff';
 ```
 
 ```tsx

@@ -34,33 +34,33 @@ export function CounterProvider({ children }) {
 
 ```ts
 // react-query usage
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query';
 
 function useUser(userId: string) {
   return useQuery({
     queryKey: ['user', userId],
-    queryFn: () => fetch(`/api/users/${userId}`).then(res => res.json()),
-  })
+    queryFn: () => fetch(`/api/users/${userId}`).then((res) => res.json()),
+  });
 }
 ```
 
 ```ts
 // Zustand example
-import create from 'zustand'
+import create from 'zustand';
 
-const useStore = create(set => ({
+const useStore = create((set) => ({
   count: 0,
-  increment: () => set(state => ({ count: state.count + 1 })),
-}))
+  increment: () => set((state) => ({ count: state.count + 1 })),
+}));
 ```
 
 ```ts
 // expo-linking for handling URL parameters
-import * as Linking from 'expo-linking'
+import * as Linking from 'expo-linking';
 
 const url = Linking.createURL('profile', {
   queryParams: { ref: 'email' },
-})
+});
 
 // Result: yourapp://profile?ref=email
 ```

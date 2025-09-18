@@ -9,26 +9,26 @@
 
 ```tsx
 // Navigation with Link from expo-router
-import { Link } from 'expo-router'
+import { Link } from 'expo-router';
 
 <Link href="/profile/settings">
   <Text>Go to Settings</Text>
-</Link>
+</Link>;
 ```
 
 ```tsx
 // Navigating programmatically
-import { useRouter } from 'expo-router'
+import { useRouter } from 'expo-router';
 
-const router = useRouter()
+const router = useRouter();
 
-router.push('/profile')
-router.replace('/login')
+router.push('/profile');
+router.replace('/login');
 ```
 
 ```ts
 // Linking config example
-import * as Linking from 'expo-linking'
+import * as Linking from 'expo-linking';
 
 const linking = {
   prefixes: [Linking.createURL('/')],
@@ -39,7 +39,7 @@ const linking = {
       login: 'login',
     },
   },
-}
+};
 ```
 
 > 💡 Keep your routing structure intuitive and flat where possible. Use route groups for organizing authentication or tab layouts.

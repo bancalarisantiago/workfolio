@@ -1,12 +1,14 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
+
 - `app/` hosts Expo Router routes. Place new screens under route groups (e.g., `(tabs)/feature.tsx`) and co-locate data loaders when possible.
 - `components/` collects shared UI primitives in PascalCase files; keep feature-specific components near the routes that use them.
 - `hooks/` contains reusable data/state hooks (prefix `use`), while `constants/` holds app-wide config. Static assets (images, fonts) live in `assets/`.
 - Platform config and typings reside in `app.json`, `expo-env.d.ts`, and `tsconfig.json`. Use `scripts/reset-project.js` when bundler caches misbehave.
 
 ## Build, Test, and Development Commands
+
 - `yarn start` (or `npx expo start`) spins up Metro and auto-detects platforms.
 - `yarn android`, `yarn ios`, `yarn web` open the app in those targets; ensure emulators/simulators are running.
 - `yarn lint` runs ESLint with the Expo + Prettier profile; fix or suppress findings before pushing.
@@ -15,20 +17,24 @@
 - `yarn reset-project` clears Expo caches and reinstalls node modules when builds act inconsistently.
 
 ## Coding Style & Naming Conventions
+
 - Stick with TypeScript, functional React components, and 2-space indentation. Keep props/interfaces typed explicitly and prefer a `Props` suffix.
 - Name components in PascalCase (`ProfileCard.tsx`), hooks in camelCase with a `use` prefix, and route files following Expo Router patterns (`app/(tabs)/settings.tsx`).
 - Let ESLint + Prettier dictate spacing, quoting, and trailing commas; avoid mixing default and named exports within the same module.
 
 ## Testing Guidelines
+
 - Automated tests are not yet configured. When adding them, follow React Native Testing Library patterns in `__tests__` folders mirroring `app/`.
 - For now, validate features via `yarn start` on each platform you touch and capture videos or screenshots for UI changes.
 
 ## Commit & Pull Request Guidelines
+
 - Write commit subjects in the imperative mood (“Add profile tabs”), ideally under 72 characters; include scoped prefixes (`feat`, `fix`) when it clarifies intent.
 - Keep PRs focused, reference related issues, and document platform coverage plus screenshots for visual updates.
 - Ensure lint and format checks pass, and include manual test notes in every PR description.
 
 ## Rules Reference
+
 - [Accessibility & QA](rules/accessibility-qa.md): Validate screens with VoiceOver/TalkBack, maintain contrast, support dynamic type, wire haptics, and log smoke-test coverage per platform.
 - [Analytics & Logging](rules/analytics-logging.md): Centralize telemetry with typed helpers, enforce consistent event schemas, strip PII, and tie severity-tagged logs to monitoring.
 - [Code Style](rules/code-style.md): Favor concise, functional TypeScript with descriptive naming, modular helpers, and Expo-aligned workflows over classes or duplicated logic.

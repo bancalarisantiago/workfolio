@@ -15,27 +15,27 @@
 
 ```tsx
 // Lazy load a screen
-const LazyScreen = React.lazy(() => import('./screens/LazyScreen'))
+const LazyScreen = React.lazy(() => import('./screens/LazyScreen'));
 
 // Memoized callback
 const handleSubmit = useCallback(() => {
   // ...logic
-}, [formData])
+}, [formData]);
 
 // useReducer instead of multiple useState calls
-const [state, dispatch] = useReducer(reducer, initialState)
+const [state, dispatch] = useReducer(reducer, initialState);
 
 // Optimized image (expo-image)
-import { Image } from 'expo-image'
+import { Image } from 'expo-image';
 <Image
   source={{ uri: 'https://example.com/image.webp' }}
   contentFit="cover"
   style={{ width: 300, height: 200 }}
-/>
+/>;
 
 // SplashScreen handling
-import * as SplashScreen from 'expo-splash-screen'
-SplashScreen.preventAutoHideAsync()
+import * as SplashScreen from 'expo-splash-screen';
+SplashScreen.preventAutoHideAsync();
 // then hide after assets are loaded
 ```
 

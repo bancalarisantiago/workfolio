@@ -33,16 +33,16 @@ test('matches snapshot', () => {
 // Detox E2E test example
 describe('Login Flow', () => {
   beforeAll(async () => {
-    await device.launchApp()
-  })
+    await device.launchApp();
+  });
 
   it('should log in successfully', async () => {
-    await element(by.id('email-input')).typeText('test@example.com')
-    await element(by.id('password-input')).typeText('password123')
-    await element(by.id('login-button')).tap()
-    await expect(element(by.id('home-screen'))).toBeVisible()
-  })
-})
+    await element(by.id('email-input')).typeText('test@example.com');
+    await element(by.id('password-input')).typeText('password123');
+    await element(by.id('login-button')).tap();
+    await expect(element(by.id('home-screen'))).toBeVisible();
+  });
+});
 ```
 
 > 💡 Keep your tests colocated with the components they test using `.test.tsx` or `.spec.tsx`. Mock API calls and use testIDs for critical elements in E2E flows.

@@ -1,13 +1,18 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Redirect, Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return (
     <Tabs
@@ -18,17 +23,42 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={28}
+              name="house.fill"
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="(documents)"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Documents',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={28}
+              name="doc.text"
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="(paychecks)"
+        options={{
+          title: 'Paychecks',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={28}
+              name="creditcard.fill"
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>

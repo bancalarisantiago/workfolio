@@ -1,46 +1,32 @@
 import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
+export function Collapsible({ children, title }: PropsWithChildren<{ title: string }>) {
   const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? 'light';
+  const iconColor = colorScheme === 'light' ? Colors.light.icon : Colors.dark.icon;
 
   return (
-    <ThemedView>
-      <TouchableOpacity
-        style={styles.heading}
+    <View className="rounded-2xl bg-white/80 p-4 dark:bg-zinc-900/70">
+      <Pressable
+        className="flex-row items-center gap-2"
         onPress={() => setIsOpen((value) => !value)}
-        activeOpacity={0.8}
+        accessibilityRole="button"
       >
         <IconSymbol
           name="chevron.right"
           size={18}
-          weight="medium"
-          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
+          color={iconColor}
           style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
         />
+        <Text className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</Text>
+      </Pressable>
 
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
-      </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+      {isOpen ? <View className="mt-3 pl-6">{children}</View> : null}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  content: {
-    marginTop: 6,
-    marginLeft: 24,
-  },
-});

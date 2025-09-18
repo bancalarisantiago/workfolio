@@ -17,22 +17,22 @@ export const track = (event: AnalyticsEvent, props?: AnalyticsProps) => {
     appVersion,
     platform,
     ...props,
-  })
-}
+  });
+};
 
-track('profile_edit_success', { method: 'form', hasAvatar: true })
+track('profile_edit_success', { method: 'form', hasAvatar: true });
 ```
 
 ```ts
 // structured logging
-log.info('profile:load', { userId, durationMs })
-log.error('profile:update_failed', { error: message, stack })
+log.info('profile:load', { userId, durationMs });
+log.error('profile:update_failed', { error: message, stack });
 ```
 
 ```ts
 // guard verbose logs
 if (__DEV__) {
-  log.debug('profile:form_state', { values })
+  log.debug('profile:form_state', { values });
 }
 ```
 

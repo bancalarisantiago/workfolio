@@ -10,18 +10,18 @@
 
 ```ts
 // Setup with expo-localization + i18n-js
-import * as Localization from 'expo-localization'
-import i18n from 'i18n-js'
+import * as Localization from 'expo-localization';
+import i18n from 'i18n-js';
 
 i18n.translations = {
   en: { welcome: 'Welcome' },
   es: { welcome: 'Bienvenido' },
-}
+};
 
-i18n.locale = Localization.locale
-i18n.fallbacks = true
+i18n.locale = Localization.locale;
+i18n.fallbacks = true;
 
-i18n.t('welcome') // returns translated string
+i18n.t('welcome'); // returns translated string
 ```
 
 ```tsx
@@ -31,7 +31,7 @@ i18n.t('welcome') // returns translated string
 
 ```ts
 // Detect RTL
-import { I18nManager } from 'react-native'
+import { I18nManager } from 'react-native';
 
 if (I18nManager.isRTL) {
   // apply RTL-aware styles

@@ -15,42 +15,42 @@
 ```ts
 // ✅ Good
 const getUserFullName = (user: { firstName: string; lastName: string }) =>
-  `${user.firstName} ${user.lastName}`
+  `${user.firstName} ${user.lastName}`;
 
 // ❌ Bad (too verbose)
 function getUserFullName(user: { firstName: string; lastName: string }) {
-  const fullName = user.firstName + ' ' + user.lastName
-  return fullName
+  const fullName = user.firstName + ' ' + user.lastName;
+  return fullName;
 }
 ```
 
 ```tsx
 // ✅ Functional
 function ProfileCard({ name }: { name: string }) {
-  return <Text>Hello, {name}</Text>
+  return <Text>Hello, {name}</Text>;
 }
 
 // ❌ Class-based
 class ProfileCard extends React.Component<{ name: string }> {
   render() {
-    return <Text>Hello, {this.props.name}</Text>
+    return <Text>Hello, {this.props.name}</Text>;
   }
 }
 ```
 
 ```ts
 // ✅ Modular and expressive
-const formatPrices = (items: Item[]) => items.map(item => formatPrice(item.price))
+const formatPrices = (items: Item[]) => items.map((item) => formatPrice(item.price));
 
 // ❌ Duplicated logic
-const prices = items.map(item => {
-  const formatted = item.price.toFixed(2)
-  return `$${formatted}`
-})
+const prices = items.map((item) => {
+  const formatted = item.price.toFixed(2);
+  return `$${formatted}`;
+});
 ```
 
 ```ts
 // ✅ Descriptive variable names
-const isSubmitting = useAppSelector(state => state.form.isSubmitting)
-const hasPermission = user.roles.includes('admin')
+const isSubmitting = useAppSelector((state) => state.form.isSubmitting);
+const hasPermission = user.roles.includes('admin');
 ```

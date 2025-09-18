@@ -15,23 +15,23 @@
 ```ts
 // ✅ Prefer interface for objects
 interface User {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 // ❌ Avoid (unless union, etc.)
 type User = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 // ✅ Use map instead of enum
 const Role = {
   Admin: 'admin',
   User: 'user',
-} as const
+} as const;
 
-type Role = typeof Role[keyof typeof Role]
+type Role = (typeof Role)[keyof typeof Role];
 
 // ❌ Avoid
 enum Role {
@@ -43,12 +43,16 @@ enum Role {
 ```tsx
 // ✅ Typed functional component
 interface ButtonProps {
-  title: string
-  onPress: () => void
+  title: string;
+  onPress: () => void;
 }
 
 export function Button({ title, onPress }: ButtonProps) {
-  return <Pressable onPress={onPress}><Text>{title}</Text></Pressable>
+  return (
+    <Pressable onPress={onPress}>
+      <Text>{title}</Text>
+    </Pressable>
+  );
 }
 ```
 
