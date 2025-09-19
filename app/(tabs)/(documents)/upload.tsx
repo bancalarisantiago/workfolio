@@ -23,20 +23,12 @@ import { z } from 'zod';
 import { PermissionModal } from '@/components/custom/PermissionModal';
 import {
   DOCUMENT_TYPE_KEYS,
+  DOCUMENT_TYPES,
   type DocumentTypeKey,
   type PermissionPrompt,
-  type PermissionRequestType,
   type SelectedFile,
   type UploadFormValues,
 } from '@/types/screens/documents';
-
-export const DOCUMENT_TYPES = [
-  { key: 'legajo', label: 'Legajo' },
-  { key: 'recibos-anteriores', label: 'Recibos Anteriores' },
-  { key: 'licencias', label: 'Licencias' },
-  { key: 'sanciones', label: 'Sanciones' },
-  { key: 'otros', label: 'Otros' },
-] as const;
 
 const PRIMARY_COLOR = '#0C6DD9';
 
@@ -275,7 +267,6 @@ export default function UploadDocumentScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="px-6">
-            <Text className="text-2xl font-semibold text-slate-900">Enviar documento</Text>
             <Text className="mt-2 text-sm text-slate-500">
               Adjunta una foto o archivo existente y completa los datos requeridos.
             </Text>

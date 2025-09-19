@@ -128,7 +128,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="(paychecks)"
           options={{
-            title: 'Paychecks',
+            title: 'Recibos',
             tabBarIcon: ({ color }) => (
               <IconSymbol
                 size={28}

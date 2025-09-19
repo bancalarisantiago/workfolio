@@ -1,5 +1,7 @@
 import { Stack } from 'expo-router';
 
+import { DocumentsHeader } from '@/components/layout/documents/DocumentsHeader';
+
 export default function DocumentsStack() {
   return (
     <Stack>
@@ -10,12 +12,15 @@ export default function DocumentsStack() {
       <Stack.Screen
         name="upload"
         options={{
+          header: (props) => <DocumentsHeader {...props} />,
           title: 'Enviar documento',
-          headerTintColor: '#ffffff',
-          headerStyle: {
-            backgroundColor: '#0C6DD9',
-          },
-          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="details"
+        options={{
+          header: (props) => <DocumentsHeader {...props} />,
+          title: 'Detalles',
         }}
       />
     </Stack>

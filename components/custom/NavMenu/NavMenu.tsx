@@ -1,13 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useRef } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { NavMenuProps } from './types';
@@ -76,7 +70,7 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
 
   const menuItems: { key: string; label: string; path: string; icon: FeatherIconName }[] = [
     { key: 'home', label: 'Home', path: '/(tabs)/(home)', icon: 'home' },
-    { key: 'paychecks', label: 'Paychecks', path: '/(tabs)/(paychecks)', icon: 'credit-card' },
+    { key: 'paychecks', label: 'Recibos', path: '/(tabs)/(paychecks)', icon: 'credit-card' },
     { key: 'documents', label: 'Documents', path: '/(tabs)/(documents)', icon: 'file-text' },
     { key: 'change-pin', label: 'Change PIN', path: '/change-pin', icon: 'lock' },
   ];
