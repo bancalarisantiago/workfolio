@@ -8,8 +8,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import '../global.css';
 
 import gluestackConfig from '@/gluestack-ui.config';
-import { AuthProvider, useAuth } from '@/hooks/use-auth';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -44,7 +44,10 @@ export default function RootLayout() {
             config={gluestackConfig}
             colorMode={colorScheme === 'dark' ? 'dark' : 'light'}
           >
-            <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
+            <SafeAreaView
+              edges={['left', 'right']}
+              className="flex-1 bg-white dark:bg-zinc-950"
+            >
               <AuthGate />
             </SafeAreaView>
             <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />

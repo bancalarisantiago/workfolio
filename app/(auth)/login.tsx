@@ -6,9 +6,10 @@ import { Pressable, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import { ControllerInput } from '@/components/custom/ControllerInput';
+import { GradientBackground } from '@/components/custom/GradientBackground';
 import { cn } from '@/lib/cn';
-import { useAuth } from '@/hooks/use-auth';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -37,79 +38,83 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center gap-8 px-6 py-10">
-      <View className="gap-2">
-        <Text className="text-4xl font-semibold text-slate-900 dark:text-slate-100">
-          Welcome back
-        </Text>
-        <Text className="text-base text-slate-500 dark:text-slate-400">Sign in to continue</Text>
-      </View>
-
-      <View className="gap-4">
-        <ControllerInput
-          control={control}
-          name="email"
-          label="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <ControllerInput
-          control={control}
-          name="password"
-          label="Password"
-          secureTextEntry
-          textContentType="password"
-        />
-      </View>
-
-      <Link
-        href="/recover"
-        className="self-end"
-      >
-        <Text className="text-sm font-semibold text-sky-600 dark:text-sky-400">
-          Forgot password?
-        </Text>
-      </Link>
-
-      <View className="gap-3">
-        <Pressable
-          className={cn(
-            'items-center justify-center rounded-xl bg-sky-600 px-5 py-3',
-            isBusy && 'opacity-60',
-          )}
-          disabled={isBusy}
-          onPress={handleSubmit(onSubmit)}
-        >
-          <Text className="text-base font-semibold text-white">Sign In</Text>
-        </Pressable>
-
-        <Pressable
-          className={cn(
-            'flex-row items-center justify-center rounded-xl border border-slate-200 px-5 py-3 dark:border-slate-700',
-            isBusy && 'opacity-60',
-          )}
-          disabled={isBusy}
-          onPress={handleGoogleSignIn}
-        >
-          <AntDesign
-            name="google"
-            size={18}
-            color={iconColor}
-          />
-          <Text className="ml-2 text-base font-semibold text-slate-900 dark:text-slate-100">
-            Continue with Google
+    <GradientBackground>
+      <View className="flex-1 justify-center gap-8 bg-white/85 px-6 py-10 dark:bg-zinc-950/85">
+        <View className="gap-2">
+          <Text className="text-4xl font-semibold text-slate-900 dark:text-slate-100">
+            Welcome back
           </Text>
-        </Pressable>
-      </View>
+          <Text className="text-base text-slate-500 dark:text-slate-400">Sign in to continue</Text>
+        </View>
 
-      <View className="flex-row items-center justify-center gap-1">
-        <Text className="text-sm text-slate-500 dark:text-slate-400">
-          Don&apos;t have an account?
-        </Text>
-        <Link href="/signup">
-          <Text className="text-sm font-semibold text-sky-600 dark:text-sky-400">Sign up</Text>
+        <View className="gap-4">
+          <ControllerInput
+            control={control}
+            name="email"
+            label="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <ControllerInput
+            control={control}
+            name="password"
+            label="Password"
+            secureTextEntry
+            textContentType="password"
+          />
+        </View>
+
+        <Link
+          href="/recover"
+          className="self-end"
+        >
+          <Text className="text-sm font-semibold text-primary-600 dark:text-primary-300">
+            Forgot password?
+          </Text>
         </Link>
+
+        <View className="gap-3">
+          <Pressable
+            className={cn(
+              'items-center justify-center rounded-xl bg-primary-600 px-5 py-3',
+              isBusy && 'opacity-60',
+            )}
+            disabled={isBusy}
+            onPress={handleSubmit(onSubmit)}
+          >
+            <Text className="text-base font-semibold text-white">Sign In</Text>
+          </Pressable>
+
+          <Pressable
+            className={cn(
+              'flex-row items-center justify-center rounded-xl border border-slate-200 px-5 py-3 dark:border-slate-700',
+              isBusy && 'opacity-60',
+            )}
+            disabled={isBusy}
+            onPress={handleGoogleSignIn}
+          >
+            <AntDesign
+              name="google"
+              size={18}
+              color={iconColor}
+            />
+            <Text className="ml-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+              Continue with Google
+            </Text>
+          </Pressable>
+        </View>
+
+        <View className="flex-row items-center justify-center gap-1">
+          <Text className="text-sm text-slate-500 dark:text-slate-400">
+            Don&apos;t have an account?
+          </Text>
+          <Link href="/signup">
+            <Text className="text-sm font-semibold text-primary-600 dark:text-primary-300">
+              Sign up
+            </Text>
+          </Link>
+        </View>
       </View>
-    </View>
+    </GradientBackground>
   );
 }

@@ -5,7 +5,19 @@ export default function DocumentsStack() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: 'Documents' }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="upload"
+        options={{
+          title: 'Enviar documento',
+          headerTintColor: '#ffffff',
+          headerStyle: {
+            backgroundColor: '#0C6DD9',
+          },
+          headerBackTitleVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
     </Stack>
   );
