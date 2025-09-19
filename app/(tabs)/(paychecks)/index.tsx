@@ -10,24 +10,12 @@ import {
   View,
 } from 'react-native';
 
+import type { PaycheckEntry, PaycheckGroup, PaycheckStatus } from '@/types/screens/paychecks';
+
 const PRIMARY_COLOR = '#0C6DD9';
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<PaycheckStatus, string> = {
   signed: '#a7f3d0',
   pending: '#fde68a',
-};
-
-type PaycheckStatus = keyof typeof STATUS_COLORS;
-
-type PaycheckEntry = {
-  id: string;
-  month: string;
-  description: string;
-  status: PaycheckStatus;
-};
-
-type PaycheckGroup = {
-  year: number;
-  items: PaycheckEntry[];
 };
 
 const months2025 = [
@@ -75,8 +63,13 @@ const paycheckData: PaycheckGroup[] = [
   },
 ];
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+// Expo SDK 53 enables the new architecture by default on Android, where the
+// LayoutAnimation experimental flag is a no-op and logs warnings. Calling the
+// method only when it actually exists and returns a function keeps compatibility
+// with the old architecture without triggering warnings.
+const enableLayoutAnimationExperimental = UIManager.setLayoutAnimationEnabledExperimental;
+if (Platform.OS === 'android' && typeof enableLayoutAnimationExperimental === 'function') {
+  enableLayoutAnimationExperimental(true);
 }
 
 function StatusBadge({ status }: { status: PaycheckStatus }) {

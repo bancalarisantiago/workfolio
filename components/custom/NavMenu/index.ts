@@ -1,2 +1,2 @@
 export { NavMenu } from './NavMenu';
-export type { EmployeeMenuProps, EmployeeMenuUser } from './types';
+export type { NavMenuProps, NavMenuUser } from './types';

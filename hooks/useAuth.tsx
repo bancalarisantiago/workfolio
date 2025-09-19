@@ -1,24 +1,13 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-type AuthUser = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  cuil: string;
-  companyName: string;
-  companyDescription?: string;
-};
-
-type AuthContextValue = {
-  isAuthenticated: boolean;
-  isAuthLoading: boolean;
-  user: AuthUser | null;
-  signIn: (credentials: { email: string; password: string }) => Promise<void>;
-  signOut: () => void;
-  register: (payload: { email: string; password: string; fullName?: string }) => Promise<void>;
-  requestPasswordReset: (payload: { email: string }) => Promise<void>;
-};
+import type {
+  AuthContextValue,
+  AuthProviderProps,
+  AuthUser,
+  CredentialsPayload,
+  PasswordResetPayload,
+  RegisterPayload,
+} from '@/types/hooks/auth';
 
 const DEFAULT_USER_PROFILE: AuthUser = {
   id: 'mock-user',
@@ -32,7 +21,7 @@ const DEFAULT_USER_PROFILE: AuthUser = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -44,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(
-    async ({ email }: { email: string; password: string }) => {
+    async ({ email }: CredentialsPayload) => {
       await simulateNetworkDelay();
       setUser({ ...DEFAULT_USER_PROFILE, email });
       setIsAuthenticated(true);
@@ -53,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async ({ email, fullName }: { email: string; password: string; fullName?: string }) => {
+    async ({ email, fullName }: RegisterPayload) => {
       await simulateNetworkDelay();
       const [firstName = DEFAULT_USER_PROFILE.firstName, ...rest] = (fullName ?? '').split(' ');
       const lastName = rest.join(' ') || DEFAULT_USER_PROFILE.lastName;
@@ -74,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const requestPasswordReset = useCallback(
-    async (_payload: { email: string }) => {
+    async (_payload: PasswordResetPayload) => {
       await simulateNetworkDelay();
     },
     [simulateNetworkDelay],

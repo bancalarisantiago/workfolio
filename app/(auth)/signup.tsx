@@ -8,6 +8,7 @@ import { ControllerInput } from '@/components/custom/ControllerInput';
 import { GradientBackground } from '@/components/custom/GradientBackground';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/hooks/useAuth';
+import type { SignUpFormValues } from '@/types/screens/auth';
 
 const signUpSchema = z
   .object({
@@ -20,8 +21,6 @@ const signUpSchema = z
     message: 'Passwords must match',
     path: ['confirmPassword'],
   });
-
-type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpScreen() {
   const { control, handleSubmit, formState } = useForm<SignUpFormValues>({

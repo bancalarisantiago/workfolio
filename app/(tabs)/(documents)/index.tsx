@@ -2,6 +2,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import type { DocumentTypeKey } from '@/types/screens/documents';
+
 export const DOCUMENT_TYPES = [
   { key: 'legajo', label: 'Legajo' },
   { key: 'recibos-anteriores', label: 'Recibos Anteriores' },
@@ -9,8 +11,6 @@ export const DOCUMENT_TYPES = [
   { key: 'sanciones', label: 'Sanciones' },
   { key: 'otros', label: 'Otros' },
 ] as const;
-
-export type DocumentTypeKey = (typeof DOCUMENT_TYPES)[number]['key'];
 
 const PRIMARY_COLOR = '#0C6DD9';
 

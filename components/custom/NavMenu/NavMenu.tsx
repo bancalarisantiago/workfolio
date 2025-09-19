@@ -5,26 +5,23 @@ import {
   Animated,
   Dimensions,
   Pressable,
-  StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { NavMenuUser } from './types';
+import type { NavMenuProps } from './types';
 
 const SLIDE_DURATION = 220;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MENU_WIDTH = Math.min(SCREEN_WIDTH * 0.84, 320);
 const PRIMARY_COLOR = '#0C6DD9';
-const PRIMARY_HOVER = 'rgba(12, 109, 217, 0.08)';
 const PRIMARY_PRESSED = 'rgba(12, 109, 217, 0.18)';
 
-export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMenuUser) {
+export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMenuProps) {
   const animation = useRef(new Animated.Value(0)).current;
-  const colorScheme = useColorScheme();
-  const iconColor = colorScheme === 'dark' ? '#e2e8f0' : '#1e293b';
   const logoutIconColor = '#ffffff';
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     Animated.timing(animation, {
@@ -55,6 +52,16 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
 
   const cuilValue = user?.cuil ?? 'CUIL no disponible';
 
+  const initials = useMemo(() => {
+    if (!user) {
+      return 'IN';
+    }
+    const firstInitial = user.firstName?.[0] ?? '';
+    const lastInitial = user.lastName?.[0] ?? '';
+    const combined = `${firstInitial}${lastInitial}`.trim();
+    return combined !== '' ? combined.toUpperCase() : 'IN';
+  }, [user]);
+
   const handleSelection = (path: string) => {
     onNavigate(path);
     onClose();
@@ -77,74 +84,89 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
   return (
     <View
       pointerEvents={visible ? 'auto' : 'none'}
-      style={StyleSheet.absoluteFill}
+      className="absolute inset-0 z-50"
     >
-      <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+      <Animated.View
+        className="absolute inset-0 bg-slate-950/70"
+        style={{ opacity: backdropOpacity }}
+      >
         <Pressable
-          style={StyleSheet.absoluteFill}
+          className="absolute inset-0"
           onPress={onClose}
         />
       </Animated.View>
 
       <Animated.View
-        style={[
-          styles.drawer,
-          {
-            width: MENU_WIDTH,
-            transform: [{ translateX }],
-          },
-        ]}
+        className="absolute top-0 bottom-0 right-0 shadow-2xl shadow-slate-900/40"
+        style={{
+          width: MENU_WIDTH,
+          transform: [{ translateX }],
+        }}
       >
-        <View className="flex-1 bg-white px-6 py-10 pb-16 dark:bg-zinc-900">
-          <View className="gap-1">
-            <Text className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-              {displayName}
-            </Text>
-            <Text className="text-sm text-slate-500 dark:text-slate-400">{cuilValue}</Text>
+        <View
+          className="flex-1 bg-white px-7 pb-16 dark:bg-zinc-900"
+          style={{ paddingTop: insets.top + 28 }}
+        >
+          <View className="rounded-3xl bg-primary-600 px-5 py-6">
+            <View className="flex-row items-center gap-4">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                <Text className="text-xl font-semibold uppercase text-white">{initials}</Text>
+              </View>
+              <View className="flex-1 gap-1">
+                <Text className="text-2xl font-semibold text-white">{displayName}</Text>
+                <Text className="text-base text-primary-100">{cuilValue}</Text>
+              </View>
+            </View>
           </View>
 
-          <View className="mt-10 gap-3">
+          <View className="mt-10 gap-4">
             {menuItems.map((item) => (
               <Pressable
                 key={item.key}
                 android_ripple={{ color: PRIMARY_PRESSED, borderless: false }}
                 onPress={() => handleSelection(item.path)}
-                style={({ pressed, hovered }) => [
-                  styles.menuItem,
-                  pressed && { backgroundColor: PRIMARY_PRESSED },
-                  !pressed && hovered && { backgroundColor: PRIMARY_HOVER },
-                ]}
+                className="overflow-hidden rounded-3xl"
+                style={({ pressed, hovered }) => ({
+                  backgroundColor: pressed
+                    ? 'rgba(12, 109, 217, 0.16)'
+                    : hovered
+                      ? 'rgba(12, 109, 217, 0.12)'
+                      : 'rgba(12, 109, 217, 0.08)',
+                })}
               >
-                {({ pressed, hovered }) => (
-                  <View className="flex-row items-center gap-3">
-                    <Feather
-                      name={item.icon}
-                      size={20}
-                      color={pressed || hovered ? PRIMARY_COLOR : iconColor}
-                    />
-                    <Text
-                      className="text-base font-medium text-slate-900 dark:text-slate-100"
-                      style={{ color: pressed || hovered ? PRIMARY_COLOR : undefined }}
-                    >
-                      {item.label}
-                    </Text>
-                  </View>
-                )}
+                {({ pressed, hovered }) => {
+                  const tint = pressed || hovered ? PRIMARY_COLOR : '#1e293b';
+                  return (
+                    <View className="flex-row items-center gap-4 px-5 py-4">
+                      <Feather
+                        name={item.icon}
+                        size={24}
+                        color={tint}
+                      />
+                      <Text
+                        className="text-lg font-semibold text-slate-900"
+                        style={{ color: tint }}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  );
+                }}
               </Pressable>
             ))}
           </View>
 
           <View className="mt-auto pb-6">
             <Pressable
-              className="flex-row items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-3"
+              className="flex-row items-center justify-center gap-3 rounded-2xl bg-primary-600 px-5 py-4"
               onPress={handleLogout}
             >
               <Feather
                 name="log-out"
-                size={20}
+                size={26}
                 color={logoutIconColor}
               />
-              <Text className="text-center text-base font-semibold text-white">Salir</Text>
+              <Text className="text-center text-lg font-semibold text-white">Salir</Text>
             </Pressable>
           </View>
         </View>
@@ -152,26 +174,3 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  drawer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    elevation: 12,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: -4, height: 0 },
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0f172a',
-  },
-  menuItem: {
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-  },
-});

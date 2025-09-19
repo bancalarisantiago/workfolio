@@ -10,12 +10,11 @@ import { ControllerInput } from '@/components/custom/ControllerInput';
 import { GradientBackground } from '@/components/custom/GradientBackground';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/hooks/useAuth';
+import type { RecoveryFormValues } from '@/types/screens/auth';
 
 const recoverySchema = z.object({
   email: z.string().email('Please enter a valid email'),
 });
-
-type RecoveryFormValues = z.infer<typeof recoverySchema>;
 
 export default function RecoverScreen() {
   const [isRequestSent, setIsRequestSent] = useState(false);

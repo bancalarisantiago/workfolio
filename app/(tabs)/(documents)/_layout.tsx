@@ -15,7 +15,6 @@ export default function DocumentsStack() {
           headerStyle: {
             backgroundColor: '#0C6DD9',
           },
-          headerBackTitleVisible: false,
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

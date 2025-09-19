@@ -1,11 +1,12 @@
 import { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, Rect, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 
 import { cn } from '@/lib/cn';
 
 const PRIMARY = '#0C6DD9';
 const SECONDARY = '#2C7BEA';
+const ACCENT = '#ffffff';
 
 type GradientBackgroundProps = {
   children: ReactNode;
@@ -34,12 +35,12 @@ export function GradientBackground({ children, className }: GradientBackgroundPr
             />
             <Stop
               offset="55%"
-              stopColor={PRIMARY}
-              stopOpacity={0.55}
+              stopColor={SECONDARY}
+              stopOpacity={0.9}
             />
             <Stop
               offset="100%"
-              stopColor={SECONDARY}
+              stopColor={ACCENT}
               stopOpacity={0.95}
             />
           </SvgLinearGradient>

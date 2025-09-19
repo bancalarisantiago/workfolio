@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -20,6 +21,14 @@ import {
 import { z } from 'zod';
 
 import { PermissionModal } from '@/components/custom/PermissionModal';
+import {
+  DOCUMENT_TYPE_KEYS,
+  type DocumentTypeKey,
+  type PermissionPrompt,
+  type PermissionRequestType,
+  type SelectedFile,
+  type UploadFormValues,
+} from '@/types/screens/documents';
 
 export const DOCUMENT_TYPES = [
   { key: 'legajo', label: 'Legajo' },
@@ -29,17 +38,10 @@ export const DOCUMENT_TYPES = [
   { key: 'otros', label: 'Otros' },
 ] as const;
 
-export type DocumentTypeKey = (typeof DOCUMENT_TYPES)[number]['key'];
-
 const PRIMARY_COLOR = '#0C6DD9';
 
-const documentTypeKeys = DOCUMENT_TYPES.map((item) => item.key) as [
-  DocumentTypeKey,
-  ...DocumentTypeKey[],
-];
-
 const uploadSchema = z.object({
-  documentType: z.enum(documentTypeKeys, { required_error: 'Selecciona un tipo de documento' }),
+  documentType: z.enum(DOCUMENT_TYPE_KEYS, { message: 'Selecciona un tipo de documento' }),
   notes: z
     .string()
     .max(500, 'Las observaciones no pueden superar los 500 caracteres')
@@ -48,26 +50,10 @@ const uploadSchema = z.object({
   fileUri: z.string().min(1, 'Adjunta una foto o archivo para continuar'),
 });
 
-type UploadFormValues = z.infer<typeof uploadSchema>;
-
-type PermissionRequestType = 'camera' | 'file';
-
-type SelectedFile = {
-  uri: string;
-  name: string;
-  mimeType?: string | null;
-  isImage: boolean;
-};
-
-type PermissionPromptState = {
-  type: PermissionRequestType;
-  onAllow: () => Promise<void>;
-} | null;
-
 export default function UploadDocumentScreen() {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
-  const [permissionPrompt, setPermissionPrompt] = useState<PermissionPromptState>(null);
+  const [permissionPrompt, setPermissionPrompt] = useState<PermissionPrompt | null>(null);
   const [typeModalVisible, setTypeModalVisible] = useState(false);
 
   const {
@@ -95,7 +81,7 @@ export default function UploadDocumentScreen() {
 
   const capturePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       quality: 0.8,
     });
 
@@ -120,15 +106,11 @@ export default function UploadDocumentScreen() {
         copyToCacheDirectory: true,
       });
 
-      const canceled = 'canceled' in result ? result.canceled : result.type === 'cancel';
-      if (canceled) {
+      if (result.canceled || !result.assets?.length) {
         return;
       }
 
-      const asset = 'assets' in result ? result.assets?.[0] : (result as any);
-      if (!asset) {
-        return;
-      }
+      const asset = result.assets[0];
 
       const file: SelectedFile = {
         uri: asset.uri,
@@ -146,30 +128,45 @@ export default function UploadDocumentScreen() {
   };
 
   const ensureCameraAccess = async () => {
-    const status = await ImagePicker.getCameraPermissionsAsync();
+    const current = await ImagePicker.getCameraPermissionsAsync();
 
-    if (status.granted) {
+    if (current.granted) {
       await capturePhoto();
       return;
     }
 
-    if (!status.canAskAgain) {
-      Alert.alert(
-        'Permiso requerido',
-        'Habilita el acceso a la cámara desde los ajustes del dispositivo.',
-      );
+    if (current.status === ImagePicker.PermissionStatus.DENIED && !current.canAskAgain) {
+      Alert.alert('Permiso requerido', 'Habilita el acceso a la cámara desde Ajustes.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+      ]);
+      return;
+    }
+
+    const request = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (request.status === ImagePicker.PermissionStatus.GRANTED) {
+      await capturePhoto();
+      return;
+    }
+
+    if (!request.canAskAgain) {
+      Alert.alert('Permiso denegado', 'No se pudo acceder a la cámara.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+      ]);
       return;
     }
 
     setPermissionPrompt({
       type: 'camera',
       onAllow: async () => {
-        const request = await ImagePicker.requestCameraPermissionsAsync();
-        if (request.status !== ImagePicker.PermissionStatus.GRANTED) {
-          Alert.alert(
-            'Permiso denegado',
-            'No se pudo acceder a la cámara. Ajusta los permisos en el dispositivo.',
-          );
+        const retry = await ImagePicker.requestCameraPermissionsAsync();
+        if (retry.status !== ImagePicker.PermissionStatus.GRANTED) {
+          Alert.alert('Permiso denegado', 'No se pudo acceder a la cámara.', [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+          ]);
           return;
         }
         await capturePhoto();
@@ -178,30 +175,45 @@ export default function UploadDocumentScreen() {
   };
 
   const ensureMediaLibraryAccess = async () => {
-    const status = await ImagePicker.getMediaLibraryPermissionsAsync();
+    const current = await ImagePicker.getMediaLibraryPermissionsAsync();
 
-    if (status.granted) {
+    if (current.granted) {
       await pickDocument();
       return;
     }
 
-    if (!status.canAskAgain) {
-      Alert.alert(
-        'Permiso requerido',
-        'Habilita el acceso a tus archivos desde los ajustes del dispositivo.',
-      );
+    if (current.status === ImagePicker.PermissionStatus.DENIED && !current.canAskAgain) {
+      Alert.alert('Permiso requerido', 'Habilita el acceso a tus archivos desde Ajustes.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+      ]);
+      return;
+    }
+
+    const request = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (request.status === ImagePicker.PermissionStatus.GRANTED) {
+      await pickDocument();
+      return;
+    }
+
+    if (!request.canAskAgain) {
+      Alert.alert('Permiso denegado', 'No se pudo acceder a tus archivos.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+      ]);
       return;
     }
 
     setPermissionPrompt({
       type: 'file',
       onAllow: async () => {
-        const request = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (request.status !== ImagePicker.PermissionStatus.GRANTED) {
-          Alert.alert(
-            'Permiso denegado',
-            'No se pudo acceder a tus archivos. Ajusta los permisos en el dispositivo.',
-          );
+        const retry = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (retry.status !== ImagePicker.PermissionStatus.GRANTED) {
+          Alert.alert('Permiso denegado', 'No se pudo acceder a tus archivos.', [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Abrir ajustes', onPress: () => Linking.openSettings().catch(() => {}) },
+          ]);
           return;
         }
         await pickDocument();
@@ -259,17 +271,17 @@ export default function UploadDocumentScreen() {
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: 40, paddingTop: 12 }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="px-6 pt-6">
+          <View className="px-6">
             <Text className="text-2xl font-semibold text-slate-900">Enviar documento</Text>
             <Text className="mt-2 text-sm text-slate-500">
               Adjunta una foto o archivo existente y completa los datos requeridos.
             </Text>
           </View>
 
-          <View className="mt-6 px-6">
+          <View className="mt-4 px-6">
             <View className="items-center rounded-3xl bg-white px-6 py-8 shadow-sm">
               {selectedFile ? (
                 selectedFile.isImage ? (

@@ -10,13 +10,12 @@ import { GradientBackground } from '@/components/custom/GradientBackground';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/hooks/useAuth';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import type { LoginFormValues } from '@/types/screens/auth';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { control, handleSubmit, formState } = useForm<LoginFormValues>({
