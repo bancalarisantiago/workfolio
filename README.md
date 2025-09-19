@@ -1,50 +1,61 @@
-# Welcome to your Expo app 👋
+# Workfolio
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Workfolio is an Expo-powered mobile workspace for employers and their teams to keep every required document current. Employees can upload, review, and sign paperwork from their phones while managers track compliance in real time. The app provides a single source of truth for contracts, NDAs, certifications, and any other documentation employees must keep up to date.
 
-## Get started
+## Why Workfolio
+
+- **Centralised document hub** – Collect identification, contracts, certificates, and policy acknowledgements in one place.
+- **Mobile-first signing** – Capture signatures directly inside the app so forms are never waiting on a printer or scanner.
+- **Instant status tracking** – Surface which documents are missing, expiring soon, or ready for employer approval.
+- **Team transparency** – Give both managers and employees a clear view of what is outstanding.
+
+## Coming soon
+
+- **People calendar** – Celebrate the team with shared visibility into birthdays, anniversaries, and important company events.
+- **Renewal reminders** – Automated nudges when certifications or forms are about to lapse.
+- **Role-based dashboards** – Tailored views for HR, managers, and individual contributors.
+
+## Tech stack
+
+- [Expo Router](https://docs.expo.dev/router/introduction/) for file-based navigation
+- [NativeWind](https://www.nativewind.dev/) + Tailwind CSS utilities for styling
+- [React Hook Form](https://react-hook-form.com/) with Zod validation for resilient forms
+- TypeScript, React Native, and Hermes for fast, typed development
+
+## Getting started
 
 1. Install dependencies
-
    ```bash
-   npm install
+   yarn install
    ```
 
-2. Start the app
-
+2. Start the development server
    ```bash
-   npx expo start
+   yarn start
+   ```
+   Press `i`, `a`, or `w` to launch the iOS simulator, Android emulator, or web preview respectively. Alternatively, scan the QR code with the Expo Go app on a physical device.
+
+3. Lint the project
+   ```bash
+   yarn lint
    ```
 
-In the output, you'll find options to open the app in a
+If things get out of sync, run `yarn reset-project` to reinstall dependencies and clear Expo caches.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project layout
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- `app/` – Expo Router screens (auth flows, tab groups, modals)
+- `components/` – Shared UI building blocks
+- `hooks/` – Reusable logic such as authentication state
+- `constants/` – Theme tokens and configuration
+- `global.css` & `tailwind.config.js` – NativeWind/Tailwind styling setup
 
-## Get a fresh project
+## Contributing
 
-When you're ready, run:
+1. Create a feature branch and keep pull requests focused.
+2. Ensure `yarn lint` passes and manually test on every platform touched.
+3. Describe changes clearly, including any new UX flows or configuration steps.
 
-```bash
-npm run reset-project
-```
+## License
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is currently private and intended for internal use. Contact the maintainers before distributing or reusing the code.
