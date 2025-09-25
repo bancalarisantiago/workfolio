@@ -1,6 +1,12 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { supabase } from '@/lib/supabase';
 import type {
@@ -30,7 +36,8 @@ const toNullableString = (value: unknown): string | null => {
 };
 
 const deriveNameParts = (metadata: SupabaseMetadata) => {
-  const firstName = toNullableString(metadata.firstName) ?? toNullableString(metadata.first_name);
+  const firstName =
+    toNullableString(metadata.firstName) ?? toNullableString(metadata.first_name);
   const lastName = toNullableString(metadata.lastName) ?? toNullableString(metadata.last_name);
   const fullName = toNullableString(metadata.fullName) ?? toNullableString(metadata.full_name);
 
@@ -42,7 +49,7 @@ const deriveNameParts = (metadata: SupabaseMetadata) => {
     const [first, ...rest] = fullName.split(' ').filter(Boolean);
     return {
       firstName: first ?? firstName ?? null,
-      lastName: rest.length > 0 ? rest.join(' ') : (lastName ?? null),
+      lastName: rest.length > 0 ? rest.join(' ') : lastName ?? null,
     };
   }
 
@@ -63,31 +70,12 @@ const mapSupabaseUserToAuthUser = (supabaseUser: User | null): AuthUser | null =
     firstName,
     lastName,
     cuil: toNullableString(metadata.cuil) ?? toNullableString(metadata.CUIL),
-    companyName: toNullableString(metadata.companyName) ?? toNullableString(metadata.company_name),
+    companyName:
+      toNullableString(metadata.companyName) ?? toNullableString(metadata.company_name),
     companyDescription:
       toNullableString(metadata.companyDescription) ??
       toNullableString(metadata.company_description),
   };
-};
-
-const sanitizeRedirect = (value?: string | null) => {
-  if (!value) {
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-};
-
-const getRedirectUrlForPlatform = (nativeValue?: string | null, webValue?: string | null) => {
-  const nativeRedirect = sanitizeRedirect(nativeValue);
-  const webRedirect = sanitizeRedirect(webValue);
-
-  if (Platform.OS === 'web') {
-    return webRedirect ?? nativeRedirect;
-  }
-
-  return nativeRedirect ?? webRedirect;
 };
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -168,16 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const [firstName, ...rest] = normalizedFullName.split(' ').filter(Boolean);
         const lastName = rest.length > 0 ? rest.join(' ') : null;
 
-        const authRedirect = getRedirectUrlForPlatform(
-          process.env.EXPO_PUBLIC_SUPABASE_AUTH_REDIRECT_URL,
-          process.env.EXPO_PUBLIC_SUPABASE_AUTH_REDIRECT_URL_WEB,
-        );
-
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: authRedirect,
             data: {
               fullName: normalizedFullName || null,
               firstName: firstName ?? null,
@@ -202,43 +184,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     setIsAuthLoading(true);
     try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (error) {
-      console.warn('[AuthProvider] Local signOut failed, continuing', error);
-    } finally {
-      applySession(null);
-      setIsAuthLoading(false);
-    }
-
-    setTimeout(() => {
-      void supabase.auth.signOut({ scope: 'global' }).catch((error) => {
-        const message = error instanceof Error ? error.message : String(error ?? 'unknown error');
-        if (!message.toLowerCase().includes('network request failed')) {
-          console.warn('[AuthProvider] Unable to revoke Supabase session globally:', message);
-        }
-      });
-    }, 0);
-  }, [applySession]);
-
-  const requestPasswordReset = useCallback(async ({ email }: PasswordResetPayload) => {
-    setIsAuthLoading(true);
-    try {
-      const passwordResetRedirect = getRedirectUrlForPlatform(
-        process.env.EXPO_PUBLIC_SUPABASE_PASSWORD_RESET_REDIRECT_URL,
-        process.env.EXPO_PUBLIC_SUPABASE_PASSWORD_RESET_REDIRECT_URL_WEB,
-      );
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: passwordResetRedirect,
-      });
-
+      const { error } = await supabase.auth.signOut();
       if (error) {
         throw new Error(error.message);
       }
+
+      applySession(null);
     } finally {
       setIsAuthLoading(false);
     }
-  }, []);
+  }, [applySession]);
+
+  const requestPasswordReset = useCallback(
+    async ({ email }: PasswordResetPayload) => {
+      setIsAuthLoading(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      } finally {
+        setIsAuthLoading(false);
+      }
+    },
+    [],
+  );
 
   const refreshSession = useCallback(async () => {
     setIsAuthLoading(true);
