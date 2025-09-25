@@ -61,9 +61,9 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
     onClose();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose();
-    onLogout();
+    await onLogout();
   };
 
   type FeatherIconName = ComponentProps<typeof Feather>['name'];
@@ -153,7 +153,9 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
           <View className="mt-auto pb-6">
             <Pressable
               className="flex-row items-center justify-center gap-3 rounded-2xl bg-primary-600 px-5 py-4"
-              onPress={handleLogout}
+              onPress={() => {
+                void handleLogout();
+              }}
             >
               <Feather
                 name="log-out"

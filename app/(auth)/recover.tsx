@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import { ControllerInput } from '@/components/custom/ControllerInput';
@@ -27,9 +27,14 @@ export default function RecoverScreen() {
   const isBusy = formState.isSubmitting || isAuthLoading;
 
   const onSubmit = async (values: RecoveryFormValues) => {
-    await requestPasswordReset(values);
-    setIsRequestSent(true);
-    reset(values);
+    try {
+      await requestPasswordReset(values);
+      setIsRequestSent(true);
+      reset(values);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No pudimos enviar el correo de recuperación.';
+      Alert.alert('Error al recuperar acceso', message);
+    }
   };
 
   return (

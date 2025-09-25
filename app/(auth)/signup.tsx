@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import { ControllerInput } from '@/components/custom/ControllerInput';
@@ -32,7 +32,19 @@ export default function SignUpScreen() {
   const isBusy = formState.isSubmitting || isAuthLoading;
 
   const onSubmit = async ({ email, password, fullName }: SignUpFormValues) => {
-    await register({ email, password, fullName });
+    try {
+      const { emailConfirmationRequired } = await register({ email, password, fullName });
+
+      if (emailConfirmationRequired) {
+        Alert.alert(
+          'Revisa tu correo',
+          'Te enviamos un enlace para confirmar tu cuenta antes de iniciar sesión.',
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No pudimos crear tu cuenta.';
+      Alert.alert('Error al registrarse', message);
+    }
   };
 
   return (

@@ -2,7 +2,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import { ControllerInput } from '@/components/custom/ControllerInput';
@@ -29,11 +29,16 @@ export default function LoginScreen() {
   const isBusy = formState.isSubmitting || isAuthLoading;
 
   const onSubmit = async (values: LoginFormValues) => {
-    await signIn(values);
+    try {
+      await signIn(values);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to sign in with those credentials.';
+      Alert.alert('Sign-in failed', message);
+    }
   };
 
   const handleGoogleSignIn = async () => {
-    await signIn({ email: 'google-user@example.com', password: 'oauth-placeholder' });
+    Alert.alert('Integración pendiente', 'Inicia sesión con correo y contraseña mientras configuramos Google.');
   };
 
   return (

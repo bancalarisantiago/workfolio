@@ -2,12 +2,12 @@ import type { ReactNode } from 'react';
 
 export type AuthUser = {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  cuil: string;
-  companyName: string;
-  companyDescription?: string;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  cuil?: string | null;
+  companyName?: string | null;
+  companyDescription?: string | null;
 };
 
 export type CredentialsPayload = {
@@ -30,9 +30,10 @@ export type AuthContextValue = {
   isAuthLoading: boolean;
   user: AuthUser | null;
   signIn: (credentials: CredentialsPayload) => Promise<void>;
-  signOut: () => void;
-  register: (payload: RegisterPayload) => Promise<void>;
+  signOut: () => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<{ emailConfirmationRequired: boolean }>;
   requestPasswordReset: (payload: PasswordResetPayload) => Promise<void>;
+  refreshSession: () => Promise<void>;
 };
 
 export type AuthProviderProps = {

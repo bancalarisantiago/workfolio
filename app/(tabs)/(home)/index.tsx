@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/cn';
@@ -22,9 +22,10 @@ export default function HomeScreen() {
     },
   ];
 
-  const greetingName = user?.firstName?.toUpperCase() ?? 'USUARIO';
+  const toUpper = (value?: string | null) => (value ? value.toUpperCase() : undefined);
+  const greetingName = toUpper(user?.firstName) ?? 'USUARIO';
   const formattedFullName = user
-    ? `${user.lastName.toUpperCase()}, ${user.firstName.toUpperCase()}`
+    ? [toUpper(user?.lastName), toUpper(user?.firstName)].filter(Boolean).join(', ') || 'Usuario Invitado'
     : 'Usuario Invitado';
 
   return (
@@ -112,7 +113,19 @@ export default function HomeScreen() {
             isAuthLoading && 'opacity-60',
           )}
           disabled={isAuthLoading}
-          onPress={signOut}
+          onPress={() => {
+            void (async () => {
+              try {
+                await signOut();
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : 'No pudimos cerrar tu sesión.';
+                Alert.alert('Error al cerrar sesión', message);
+              }
+            })();
+          }}
         >
           <Text className="text-base font-semibold text-primary-700">Cerrar sesión</Text>
         </Pressable>

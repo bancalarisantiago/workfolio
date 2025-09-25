@@ -4,6 +4,7 @@ import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import '../global.css';
 
@@ -19,18 +20,20 @@ function AuthGate() {
   const { isAuthLoading } = useAuth();
   const colorScheme = useColorScheme();
 
-  if (isAuthLoading) {
-    return (
-      <Center
-        flex={1}
-        bg={colorScheme === 'dark' ? '$backgroundDark950' : '$backgroundLight0'}
-      >
-        <Spinner size="large" />
-      </Center>
-    );
-  }
-
-  return <Slot />;
+  return (
+    <View style={styles.authGateContainer}>
+      <Slot />
+      {isAuthLoading ? (
+        <Center
+          bg={colorScheme === 'dark' ? '$backgroundDark950' : '$backgroundLight0'}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="auto"
+        >
+          <Spinner size="large" />
+        </Center>
+      ) : null}
+    </View>
+  );
 }
 
 export default function RootLayout() {
@@ -57,3 +60,9 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  authGateContainer: {
+    flex: 1,
+  },
+});
