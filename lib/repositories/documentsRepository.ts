@@ -242,6 +242,20 @@ export const getDocumentById = async (
   return document;
 };
 
+export const getDocumentsForEmployee = async (
+  companyId: string,
+  employeeId: string,
+): Promise<Document[]> => {
+  const response = await supabase
+    .from<Document>('documents')
+    .select('*')
+    .eq('company_id', ensureCompanyScope(companyId))
+    .eq('employee_id', ensureIdentifier(employeeId, 'employeeId'))
+    .order('issued_at', { ascending: false });
+
+  return unwrapList(response, 'Unable to load employee documents');
+};
+
 export const createDocument = async (
   companyId: string,
   payload: DocumentInsert,
@@ -399,4 +413,23 @@ export const deleteDocumentFile = async (
     .eq('id', ensureIdentifier(fileId, 'fileId'));
 
   ensureNoError(response, 'Unable to delete document file');
+};
+
+export const getDocumentFilesByDocumentIds = async (
+  companyId: string,
+  documentIds: string[],
+): Promise<DocumentFile[]> => {
+  if (!documentIds.length) {
+    return [];
+  }
+
+  const response = await supabase
+    .from<DocumentFile>('document_files')
+    .select('*')
+    .eq('company_id', ensureCompanyScope(companyId))
+    .in('document_id', documentIds)
+    .order('version', { ascending: false })
+    .order('uploaded_at', { ascending: false });
+
+  return unwrapList(response, 'Unable to load document files');
 };

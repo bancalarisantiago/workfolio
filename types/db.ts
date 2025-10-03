@@ -394,3 +394,55 @@ export type NotificationDeliveryInsert = Omit<NotificationDelivery, 'id' | 'crea
 export type NotificationDeliveryReplace = NotificationDeliveryInsert;
 
 export type NotificationDeliveryUpdate = Partial<NotificationDeliveryInsert>;
+
+export type PaycheckStatus = 'unsigned' | 'signed';
+
+export interface Paycheck {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  period_start: string;
+  period_end: string;
+  gross_amount: number;
+  net_amount: number;
+  currency: string;
+  file_path: string | null;
+  issued_at: string;
+  status: PaycheckStatus;
+  viewed_at: string | null;
+  downloaded_at: string | null;
+  signed_at: string | null;
+  signed_by: string | null;
+  created_at: string;
+  updated_at: string;
+  metadata: Record<string, unknown> | null;
+}
+
+export type PaycheckInsert = Omit<Paycheck, 'id' | 'created_at' | 'updated_at' | 'status'> & {
+  id?: string;
+  status?: PaycheckStatus;
+};
+
+export type PaycheckReplace = PaycheckInsert;
+
+export type PaycheckUpdate = Partial<PaycheckInsert>;
+
+export type PaycheckSignatureEventType = 'pin_entered' | 'biometric_success' | 'biometric_failure';
+
+export interface PaycheckSignatureEvent {
+  id: string;
+  company_id: string;
+  paycheck_id: string;
+  employee_id: string;
+  event_type: PaycheckSignatureEventType;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export type PaycheckSignatureEventInsert = Omit<PaycheckSignatureEvent, 'id' | 'created_at'> & {
+  id?: string;
+};
+
+export type PaycheckSignatureEventReplace = PaycheckSignatureEventInsert;
+
+export type PaycheckSignatureEventUpdate = Partial<PaycheckSignatureEventInsert>;

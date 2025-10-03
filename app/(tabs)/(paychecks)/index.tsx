@@ -1,79 +1,38 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   LayoutAnimation,
+  Linking,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   UIManager,
   View,
 } from 'react-native';
 
-import type { PaycheckEntry, PaycheckGroup, PaycheckStatus } from '@/types/screens/paychecks';
+import { useEmployeePaychecks } from '@/hooks/useEmployeePaychecks';
+import type { PaycheckEntry } from '@/types/screens/paychecks';
+import type { PaycheckStatus } from '@/types/db';
 
 const PRIMARY_COLOR = '#0C6DD9';
 const STATUS_COLORS: Record<PaycheckStatus, string> = {
   signed: '#a7f3d0',
-  pending: '#fde68a',
+  unsigned: '#fde68a',
 };
 
-const months2025 = [
-  'Ene',
-  'Feb',
-  'Mar',
-  'Abr',
-  'May',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dic',
-];
-
-const paycheckData: PaycheckGroup[] = [
-  {
-    year: 2025,
-    items: months2025.map((month, index) => ({
-      id: `2025-${index}`,
-      month: `${month}. 2025`,
-      description: 'Mensual (Pág. 1)',
-      status: 'signed',
-    })),
-  },
-  {
-    year: 2024,
-    items: ['Nov', 'Dic'].map((month, index) => ({
-      id: `2024-${index}`,
-      month: `${month}. 2024`,
-      description: 'Mensual (Pág. 1)',
-      status: index === 0 ? 'pending' : 'signed',
-    })),
-  },
-  {
-    year: 2023,
-    items: ['Nov', 'Dic'].map((month, index) => ({
-      id: `2023-${index}`,
-      month: `${month}. 2023`,
-      description: 'Mensual (Pág. 1)',
-      status: 'signed',
-    })),
-  },
-];
-
-// Expo SDK 53 enables the new architecture by default on Android, where the
-// LayoutAnimation experimental flag is a no-op and logs warnings. Calling the
-// method only when it actually exists and returns a function keeps compatibility
-// with the old architecture without triggering warnings.
 const enableLayoutAnimationExperimental = UIManager.setLayoutAnimationEnabledExperimental;
 if (Platform.OS === 'android' && typeof enableLayoutAnimationExperimental === 'function') {
   enableLayoutAnimationExperimental(true);
 }
 
 function StatusBadge({ status }: { status: PaycheckStatus }) {
-  const label = status === 'signed' ? 'Firmado' : 'Pendiente';
+  const isSigned = status === 'signed';
+  const label = isSigned ? 'Firmado' : 'Pendiente';
   const backgroundColor = STATUS_COLORS[status];
 
   return (
@@ -86,14 +45,23 @@ function StatusBadge({ status }: { status: PaycheckStatus }) {
   );
 }
 
-function PaycheckItem({ entry }: { entry: PaycheckEntry }) {
+function PaycheckItem({
+  entry,
+  onPress,
+  isDownloading,
+}: {
+  entry: PaycheckEntry;
+  onPress: () => void;
+  isDownloading: boolean;
+}) {
   return (
     <Pressable
-      accessibilityHint="Ver detalle del recibo"
+      accessibilityHint="Descargar recibo"
       accessibilityRole="button"
       android_ripple={{ color: 'rgba(12, 109, 217, 0.12)' }}
       className="overflow-hidden rounded-3xl bg-white"
-      onPress={() => {}}
+      onPress={onPress}
+      disabled={isDownloading}
     >
       <View className="flex-row items-center gap-4 px-5 py-5">
         <View className="rounded-2xl bg-primary-50 p-3">
@@ -105,18 +73,47 @@ function PaycheckItem({ entry }: { entry: PaycheckEntry }) {
         </View>
         <View className="flex-1">
           <Text className="text-sm font-semibold uppercase tracking-wide text-slate-900">
-            {entry.month}
+            {entry.label}
           </Text>
           <Text className="mt-1 text-xs text-slate-500">{entry.description}</Text>
+          {entry.netAmount != null && entry.currency ? (
+            <Text className="mt-1 text-xs text-slate-500">
+              Neto {entry.currency} {entry.netAmount.toFixed(2)}
+            </Text>
+          ) : null}
         </View>
-        <StatusBadge status={entry.status} />
+        <View className="items-end gap-2">
+          <StatusBadge status={entry.status} />
+          {isDownloading ? (
+            <ActivityIndicator
+              color={PRIMARY_COLOR}
+              size="small"
+            />
+          ) : (
+            <MaterialIcons
+              name="download"
+              size={20}
+              color={PRIMARY_COLOR}
+            />
+          )}
+        </View>
       </View>
     </Pressable>
   );
 }
 
 export default function PaychecksScreen() {
-  const [expandedYears, setExpandedYears] = useState(() => paycheckData.map((group) => group.year));
+  const { groups, isLoading, error, refresh, downloadPaycheck } = useEmployeePaychecks();
+  const [expandedYears, setExpandedYears] = useState<number[]>(() =>
+    groups.map((group) => group.year),
+  );
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
 
   const toggleYear = (year: number) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -125,11 +122,34 @@ export default function PaychecksScreen() {
     );
   };
 
-  const groups = useMemo(() => paycheckData, []);
+  const memoizedGroups = useMemo(() => groups, [groups]);
+
+  const handleDownload = useCallback(
+    async (entry: PaycheckEntry) => {
+      try {
+        setDownloadingId(entry.id);
+        const url = await downloadPaycheck(entry);
+        await Linking.openURL(url);
+      } catch (err) {
+        console.error('[PaychecksScreen] download error', err);
+        Alert.alert('Error', 'No pudimos descargar el recibo. Intenta nuevamente.');
+      } finally {
+        setDownloadingId(null);
+      }
+    },
+    [downloadPaycheck],
+  );
 
   return (
     <View className="flex-1 bg-slate-100">
       <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refresh}
+            tintColor={PRIMARY_COLOR}
+          />
+        }
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
@@ -140,7 +160,7 @@ export default function PaychecksScreen() {
         </View>
 
         <View className="-mt-8 px-6">
-          {groups.map((group) => {
+          {memoizedGroups.map((group) => {
             const isExpanded = expandedYears.includes(group.year);
 
             return (
@@ -170,6 +190,8 @@ export default function PaychecksScreen() {
                         <PaycheckItem
                           key={entry.id}
                           entry={entry}
+                          isDownloading={downloadingId === entry.id}
+                          onPress={() => handleDownload(entry)}
                         />
                       ))}
                     </View>
@@ -178,6 +200,35 @@ export default function PaychecksScreen() {
               </View>
             );
           })}
+
+          {error ? (
+            <View className="mt-6 rounded-3xl bg-white px-5 py-4">
+              <Text className="text-sm text-rose-500">{error}</Text>
+            </View>
+          ) : null}
+
+          {memoizedGroups.every((group) => group.items.length === 0) && !isLoading ? (
+            <View className="mt-6 items-center gap-3 rounded-3xl bg-white px-6 py-10">
+              <MaterialIcons
+                name="description"
+                size={48}
+                color={PRIMARY_COLOR}
+              />
+              <Text className="text-base font-semibold text-slate-900">
+                Sin recibos disponibles
+              </Text>
+              <Text className="text-center text-sm text-slate-500">
+                Cuando tu empresa publique nuevos recibos, aparecerán automáticamente aquí.
+              </Text>
+            </View>
+          ) : null}
+
+          {isLoading ? (
+            <View className="mt-6 flex-row items-center justify-center gap-3">
+              <ActivityIndicator color={PRIMARY_COLOR} />
+              <Text className="text-sm text-slate-500">Actualizando recibos…</Text>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </View>

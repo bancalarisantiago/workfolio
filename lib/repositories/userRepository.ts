@@ -128,6 +128,55 @@ export const getEmployeeProfileById = async (
   return employee;
 };
 
+export const getEmployeeProfileByMemberId = async (
+  memberId: string,
+): Promise<EmployeeProfile | null> => {
+  const response = await supabase
+    .from<EmployeeProfile>('employee_profiles')
+    .select('*')
+    .eq('member_id', ensureIdentifier(memberId, 'memberId'))
+    .maybeSingle();
+
+  return unwrapMaybeSingle(response, 'Unable to load employee profile');
+};
+
+export const ensureEmployeeProfileForMember = async (
+  companyId: string,
+  memberId: string,
+): Promise<EmployeeProfile> => {
+  const existing = await getEmployeeProfileByMemberId(memberId);
+  if (existing) {
+    return existing;
+  }
+
+  const payload: EmployeeProfileInsert = {
+    company_id: ensureCompanyScope(companyId),
+    member_id: ensureIdentifier(memberId, 'memberId'),
+    employee_number: null,
+    job_title: null,
+    department: null,
+    manager_member_id: null,
+    birthday: null,
+    hire_date: null,
+    termination_date: null,
+    is_active: true,
+    pin_hash: null,
+    pin_failed_attempts: 0,
+    pin_locked_until: null,
+    pin_last_reset_at: null,
+    emergency_contact: null,
+    address: null,
+  };
+
+  const response = await supabase
+    .from<EmployeeProfile>('employee_profiles')
+    .insert(payload)
+    .select('*')
+    .single();
+
+  return ensureMutation(response, 'Unable to provision employee profile');
+};
+
 export const createEmployeeProfile = async (
   companyId: string,
   payload: EmployeeProfileInsert,

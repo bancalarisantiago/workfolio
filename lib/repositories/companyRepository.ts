@@ -22,6 +22,35 @@ import type {
   CompanyUpdate,
 } from '@/types/db';
 
+export const getActiveMembershipForUser = async (
+  userId: string,
+): Promise<CompanyMember | null> => {
+  const scopedUserId = ensureIdentifier(userId, 'userId');
+
+  const activeResponse = await supabase
+    .from<CompanyMember>('company_members')
+    .select('*')
+    .eq('user_id', scopedUserId)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: false })
+    .maybeSingle();
+
+  const activeMembership = unwrapMaybeSingle(activeResponse, 'Unable to load active membership');
+
+  if (activeMembership) {
+    return activeMembership;
+  }
+
+  const fallbackResponse = await supabase
+    .from<CompanyMember>('company_members')
+    .select('*')
+    .eq('user_id', scopedUserId)
+    .order('created_at', { ascending: false })
+    .maybeSingle();
+
+  return unwrapMaybeSingle(fallbackResponse, 'Unable to load membership');
+};
+
 export const getAllCompanies = async (): Promise<Company[]> => {
   const response = await supabase
     .from<Company>('companies')

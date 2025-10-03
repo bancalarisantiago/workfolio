@@ -182,6 +182,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw new Error('No pudimos completar el registro del usuario.');
         }
 
+        async function runWithForeignKeyRetry<T>(
+          operation: () => Promise<{ data: T | null; error: { code?: string; message: string } | null }>,
+          fallbackMessage: string,
+        ): Promise<T | null> {
+          let lastError: { code?: string; message: string } | null = null;
+
+          for (let attempt = 0; attempt < 10; attempt += 1) {
+            const result = await operation();
+            if (!result.error) {
+              return result.data ?? null;
+            }
+
+            lastError = result.error;
+
+            if (result.error.code !== '23503') {
+              throw new Error(result.error.message);
+            }
+
+            const delay = Math.min(500 * 2 ** attempt, 4000);
+            await new Promise((resolve) => {
+              setTimeout(resolve, delay);
+            });
+          }
+
+          throw new Error(lastError?.message ?? fallbackMessage);
+        }
+
         const ensureUniqueCompanyCode = async (name: string) => {
           const sanitized = name
             .replace(/[^a-zA-Z0-9]/g, ' ')
@@ -291,6 +318,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         const nowIso = new Date().toISOString();
+
+        const targetTimeZone =
+          defaultTimeZone ?? targetCompany.default_time_zone ?? 'UTC';
+
+        const profilePayload = {
+          user_id: userId,
+          full_name:
+            normalizedFullName.length > 0 ? normalizedFullName : email.split('@')[0] ?? email,
+          preferred_name: firstName ?? null,
+          time_zone: targetTimeZone,
+          locale: 'es',
+          avatar_url: null,
+          phone: null,
+          bio: descriptionFromCompany,
+        };
+
+        await runWithForeignKeyRetry(
+          () =>
+            supabase
+              .from('user_profiles')
+              .upsert(profilePayload, { onConflict: 'user_id' })
+              .select('user_id')
+              .single(),
+          'No pudimos crear tu perfil.',
+        );
+
         const membershipPayload = {
           company_id: targetCompany.id,
           user_id: userId,
@@ -300,12 +353,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
           joined_at: nowIso,
         };
 
-        const { error: membershipError } = await supabase
-          .from('company_members')
-          .upsert(membershipPayload, { onConflict: 'company_id,user_id' });
+        const membershipRow = await runWithForeignKeyRetry(
+          () =>
+            supabase
+              .from('company_members')
+              .upsert(membershipPayload, { onConflict: 'company_id,user_id' })
+              .select('id, company_id, role')
+              .single(),
+          'No pudimos crear tu membresía en la empresa.',
+        );
 
-        if (membershipError) {
-          throw new Error(membershipError.message);
+        if (membershipRow && membershipRow.role === 'admin') {
+          await runWithForeignKeyRetry(
+            () =>
+              supabase
+                .from('employee_profiles')
+                .upsert(
+                  {
+                    company_id: membershipRow.company_id,
+                    member_id: membershipRow.id,
+                    is_active: true,
+                  },
+                  { onConflict: 'member_id' },
+                )
+                .select('id')
+                .single(),
+            'No pudimos crear el perfil de empleado.',
+          );
         }
 
         if (targetCompany.metadata && typeof targetCompany.metadata === 'object') {

@@ -3,3 +3,7 @@ export * from './userRepository';
 export * from './documentsRepository';
 export * from './eventsRepository';
 export * from './notificationsRepository';
+export * from './paychecksRepository';
+export * from './documentStorageRepository';
+export * from './paychecksStorageRepository';
+export * from './avatarStorageRepository';

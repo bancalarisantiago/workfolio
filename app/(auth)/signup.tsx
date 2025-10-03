@@ -66,7 +66,7 @@ const signUpSchema = z
   });
 
 export default function SignUpScreen() {
-  const { control, handleSubmit, formState } = useForm<SignUpFormValues>({
+  const { control, handleSubmit, formState, watch } = useForm<SignUpFormValues>({
     defaultValues: {
       fullName: '',
       email: '',
@@ -85,6 +85,8 @@ export default function SignUpScreen() {
   });
   const { register, isAuthLoading } = useAuth();
   const isBusy = formState.isSubmitting || isAuthLoading;
+  const companyCodeValue = watch('companyCode');
+  const isJoiningExisting = Boolean((companyCodeValue ?? '').trim());
 
   const onSubmit = async (values: SignUpFormValues) => {
     try {
@@ -164,6 +166,7 @@ export default function SignUpScreen() {
                 label="Company name"
                 autoCapitalize="words"
                 helperText="Obligatorio solo si creás una nueva empresa desde cero."
+                inputProps={{ isDisabled: isJoiningExisting }}
               />
               <ControllerInput
                 control={control}
@@ -171,6 +174,7 @@ export default function SignUpScreen() {
                 label="Country (ISO 3166-1)"
                 autoCapitalize="characters"
                 helperText="Ejemplo: AR, US, ES. Obligatorio para crear una nueva empresa."
+                inputProps={{ isDisabled: isJoiningExisting }}
               />
               <ControllerInput
                 control={control}
@@ -178,12 +182,14 @@ export default function SignUpScreen() {
                 label="Default time zone"
                 autoCapitalize="none"
                 helperText="Ejemplo: America/Argentina/Buenos_Aires. Obligatorio para crear una nueva empresa."
+                inputProps={{ isDisabled: isJoiningExisting }}
               />
               <ControllerInput
                 control={control}
                 name="industry"
                 label="Industry"
                 autoCapitalize="words"
+                inputProps={{ isDisabled: isJoiningExisting }}
               />
               <ControllerInput
                 control={control}
@@ -191,12 +197,18 @@ export default function SignUpScreen() {
                 label="Billing email"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                inputProps={{ isDisabled: isJoiningExisting }}
               />
               <ControllerInput
                 control={control}
                 name="companyDescription"
                 label="Company description"
-                inputProps={{ multiline: true, numberOfLines: 3, placeholder: 'Breve descripción' }}
+                inputProps={{
+                  isDisabled: isJoiningExisting,
+                  multiline: true,
+                  numberOfLines: 3,
+                  placeholder: 'Breve descripción',
+                }}
               />
             </View>
 
