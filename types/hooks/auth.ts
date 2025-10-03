@@ -8,6 +8,7 @@ export type AuthUser = {
   cuil?: string | null;
   companyName?: string | null;
   companyDescription?: string | null;
+  companyCode?: string | null;
 };
 
 export type CredentialsPayload = {
@@ -19,6 +20,13 @@ export type RegisterPayload = {
   email: string;
   password: string;
   fullName?: string;
+  companyCode: string;
+  companyName?: string;
+  countryCode?: string;
+  defaultTimeZone?: string;
+  industry?: string;
+  billingEmail?: string;
+  companyDescription?: string;
 };
 
 export type PasswordResetPayload = {

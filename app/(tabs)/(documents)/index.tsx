@@ -20,7 +20,7 @@ export default function DocumentsScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="rounded-b-[32px] bg-primary-600 px-6 pb-14 pt-6 shadow-md">
+        <View className="rounded-b-[32px] bg-primary-600 px-6 pb-14 pt-6">
           <Text className="text-2xl font-semibold text-white">Carpetas</Text>
           <Text className="mt-2 text-sm text-primary-100">
             Revisa tus documentos organizados por categoría.
@@ -32,7 +32,7 @@ export default function DocumentsScreen() {
             <Fragment key={key}>
               <Pressable
                 accessibilityRole="button"
-                className="mb-3 overflow-hidden rounded-3xl bg-white shadow-sm"
+                className="mb-3 overflow-hidden rounded-3xl bg-white"
                 android_ripple={{ color: 'rgba(12, 109, 217, 0.12)' }}
                 onPress={() =>
                   router.push({
@@ -72,7 +72,7 @@ export default function DocumentsScreen() {
       <Pressable
         accessibilityLabel="Agregar documento"
         accessibilityRole="button"
-        className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary-600 shadow-lg"
+        className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary-600"
         onPress={() => router.push('/(tabs)/(documents)/upload')}
       >
         <MaterialIcons

@@ -133,7 +133,7 @@ export default function PaychecksScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="rounded-b-[32px] bg-primary-600 px-6 pb-14 pt-6 shadow-md">
+        <View className="rounded-b-[32px] bg-primary-600 px-6 pb-14 pt-6">
           <Text className="mt-2 text-sm text-primary-100">
             Visualiza y descarga tus recibos por período.
           </Text>
@@ -146,7 +146,7 @@ export default function PaychecksScreen() {
             return (
               <View
                 key={group.year}
-                className="mb-4 overflow-hidden rounded-3xl bg-white shadow-sm"
+                className="mb-4 overflow-hidden rounded-3xl bg-white"
               >
                 <Pressable
                   accessibilityRole="button"

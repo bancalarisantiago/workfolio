@@ -26,7 +26,7 @@ export function PermissionModal({
       visible={visible}
     >
       <View className="flex-1 items-center justify-center bg-slate-900/60 px-6">
-        <View className="w-full rounded-3xl bg-white p-6 shadow-xl">
+        <View className="w-full rounded-3xl bg-white p-6">
           <Text className="text-lg font-semibold text-slate-900">{title}</Text>
           <Text className="mt-2 text-sm text-slate-500">{description}</Text>
 

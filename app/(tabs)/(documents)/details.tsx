@@ -50,7 +50,7 @@ function DocumentRow({ title, status }: { title: string; status: 'signed' | 'pen
 
   return (
     <Pressable
-      className="flex-row items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
+      className="flex-row items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4"
       android_ripple={{ color: 'rgba(12, 109, 217, 0.12)' }}
       onPress={() => {}}
     >
@@ -130,7 +130,7 @@ export default function DocumentDetailsScreen() {
               return (
                 <View
                   key={group.title}
-                  className="overflow-hidden rounded-3xl bg-white shadow-sm"
+                  className="overflow-hidden rounded-3xl bg-white"
                 >
                   <Pressable
                     className="flex-row items-center justify-between px-5 py-4"
@@ -160,7 +160,7 @@ export default function DocumentDetailsScreen() {
             })}
           </View>
         ) : (
-          <View className="items-center gap-4 rounded-3xl bg-white px-6 py-12 shadow-sm">
+          <View className="items-center gap-4 rounded-3xl bg-white px-6 py-12">
             <MaterialIcons
               name="insert-drive-file"
               size={64}

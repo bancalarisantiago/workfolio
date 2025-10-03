@@ -32,13 +32,17 @@ export default function LoginScreen() {
     try {
       await signIn(values);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to sign in with those credentials.';
+      const message =
+        error instanceof Error ? error.message : 'Unable to sign in with those credentials.';
       Alert.alert('Sign-in failed', message);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    Alert.alert('Integración pendiente', 'Inicia sesión con correo y contraseña mientras configuramos Google.');
+    Alert.alert(
+      'Integración pendiente',
+      'Inicia sesión con correo y contraseña mientras configuramos Google.',
+    );
   };
 
   return (

@@ -273,7 +273,7 @@ export default function UploadDocumentScreen() {
           </View>
 
           <View className="mt-4 px-6">
-            <View className="items-center rounded-3xl bg-white px-6 py-8 shadow-sm">
+            <View className="items-center rounded-3xl bg-white px-6 py-8">
               {selectedFile ? (
                 selectedFile.isImage ? (
                   <Image
@@ -357,7 +357,7 @@ export default function UploadDocumentScreen() {
                       Tipo de documento
                     </Text>
                     <Pressable
-                      className="mt-2 flex-row items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
+                      className="mt-2 flex-row items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-4"
                       onPress={() => setTypeModalVisible(true)}
                     >
                       <Text className="text-sm font-medium text-slate-900">
@@ -389,7 +389,7 @@ export default function UploadDocumentScreen() {
                       Observaciones (opcional)
                     </Text>
                     <TextInput
-                      className="mt-2 min-h-[112px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm"
+                      className="mt-2 min-h-[112px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900"
                       placeholder="Escribe un mensaje para tu empleador"
                       placeholderTextColor="#94a3b8"
                       multiline
