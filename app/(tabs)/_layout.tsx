@@ -55,8 +55,7 @@ export default function TabLayout() {
           headerStyle: {
             backgroundColor: palette.tint,
             borderBottomWidth: 0,
-            elevation: 0,
-            shadowOpacity: 0,
+            boxShadow: 'none',
           },
           headerTitleStyle: {
             fontSize: 20,
@@ -148,8 +147,7 @@ export default function TabLayout() {
           try {
             await signOut();
           } catch (error) {
-            const message =
-              error instanceof Error ? error.message : 'No pudimos cerrar tu sesión.';
+            const message = error instanceof Error ? error.message : 'No pudimos cerrar tu sesión.';
             Alert.alert('Error al cerrar sesión', message);
           }
         }}
