@@ -92,8 +92,12 @@ export type EmployeePaychecksValue = {
 };
 
 export function useEmployeePaychecks(): EmployeePaychecksValue {
-  const { companyId, employeeId, isLoading: isContextLoading, error: contextError } =
-    useEmployeeContext();
+  const {
+    companyId,
+    employeeId,
+    isLoading: isContextLoading,
+    error: contextError,
+  } = useEmployeeContext();
   const [paychecks, setPaychecks] = useState<PaycheckEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

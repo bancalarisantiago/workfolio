@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   createDocumentFileSignedUrl,
@@ -95,6 +95,7 @@ export type EmployeeDocumentsValue = {
   employeeId: string | null;
   documents: DocumentRecord[];
   groups: DocumentGroup[];
+  hasLoaded: boolean;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -102,18 +103,24 @@ export type EmployeeDocumentsValue = {
 };
 
 export function useEmployeeDocuments(): EmployeeDocumentsValue {
-  const { companyId, employeeId, isLoading: isContextLoading, error: contextError } =
-    useEmployeeContext();
+  const {
+    companyId,
+    employeeId,
+    isLoading: isContextLoading,
+    error: contextError,
+  } = useEmployeeContext();
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [groups, setGroups] = useState<DocumentGroup[]>(createEmptyDocumentGroups);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!companyId || !employeeId) {
       setDocuments([]);
       setGroups(createEmptyDocumentGroups());
       setError(contextError ?? null);
+      setHasLoaded(false);
       return;
     }
 
@@ -154,39 +161,39 @@ export function useEmployeeDocuments(): EmployeeDocumentsValue {
       setError(message);
     } finally {
       setIsLoading(false);
+      setHasLoaded(true);
     }
   }, [companyId, employeeId, contextError]);
 
   useEffect(() => {
     if (isContextLoading) {
+      setHasLoaded(false);
       return;
     }
 
     void refresh();
   }, [refresh, isContextLoading]);
 
-  const downloadDocument = useCallback(
-    async (record: DocumentRecord) => {
-      if (!record.filePath) {
-        throw new Error('El documento no tiene un archivo asociado.');
-      }
+  const downloadDocument = useCallback(async (record: DocumentRecord) => {
+    if (!record.filePath) {
+      throw new Error('El documento no tiene un archivo asociado.');
+    }
 
-      const result = await createDocumentFileSignedUrl(record.filePath, {
-        expiresIn: 60,
-        download: true,
-        fileName: record.title,
-      });
+    const result = await createDocumentFileSignedUrl(record.filePath, {
+      expiresIn: 60,
+      download: true,
+      fileName: record.title,
+    });
 
-      return result.signedUrl;
-    },
-    [],
-  );
+    return result.signedUrl;
+  }, []);
 
   return {
     companyId,
     employeeId,
     documents,
     groups,
+    hasLoaded,
     isLoading: isLoading || isContextLoading,
     error: error ?? contextError ?? null,
     refresh,

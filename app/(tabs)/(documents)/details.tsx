@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,6 +13,7 @@ import {
   Linking,
 } from 'react-native';
 
+import { Skeleton } from '@/components/Skeleton';
 import { useEmployeeDocuments } from '@/hooks/useEmployeeDocuments';
 import type { DocumentRecord, DocumentTypeKey } from '@/types/screens/documents';
 import { DOCUMENT_TYPE_LABELS } from '@/types/screens/documents';
@@ -97,13 +98,31 @@ function DocumentRow({
   );
 }
 
+function DocumentRowSkeleton() {
+  return (
+    <View className="flex-row items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4">
+      <Skeleton className="h-12 w-12 rounded-xl" />
+      <View className="flex-1 gap-2">
+        <Skeleton className="h-4 w-40 rounded-full" />
+        <Skeleton className="h-3 w-48 rounded-full" />
+        <Skeleton className="h-3 w-32 rounded-full" />
+      </View>
+      <View className="items-end gap-2">
+        <Skeleton className="h-6 w-16 rounded-full" />
+        <Skeleton className="h-5 w-5 rounded-full" />
+      </View>
+    </View>
+  );
+}
+
 export default function DocumentDetailsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const params = useLocalSearchParams<{ type?: string }>();
   const type = (params.type ?? 'legajo') as DocumentTypeKey;
-  const { groups, isLoading, error, refresh, downloadDocument } = useEmployeeDocuments();
+  const { groups, hasLoaded, isLoading, error, refresh, downloadDocument } = useEmployeeDocuments();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -111,8 +130,15 @@ export default function DocumentDetailsScreen() {
     });
   }, [navigation, type]);
 
+  const hasHandledInitialFocus = useRef(false);
+
   useFocusEffect(
     useCallback(() => {
+      if (!hasHandledInitialFocus.current) {
+        hasHandledInitialFocus.current = true;
+        return;
+      }
+
       void refresh();
     }, [refresh]),
   );
@@ -144,14 +170,31 @@ export default function DocumentDetailsScreen() {
   );
 
   const hasDocuments = documents.length > 0;
+  const showSkeleton = !hasLoaded || (isLoading && !hasDocuments);
+  const showEmptyState = hasLoaded && !isLoading && !hasDocuments;
+
+  const handleRefreshControl = useCallback(async () => {
+    if (isRefreshing) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, refresh]);
 
   return (
     <View className="flex-1 bg-slate-100">
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refresh}
+            refreshing={isRefreshing}
+            onRefresh={() => {
+              void handleRefreshControl();
+            }}
             tintColor={PRIMARY_COLOR}
           />
         }
@@ -162,7 +205,13 @@ export default function DocumentDetailsScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {hasDocuments ? (
+        {showSkeleton ? (
+          <View className="gap-3">
+            {[0, 1, 2].map((item) => (
+              <DocumentRowSkeleton key={item} />
+            ))}
+          </View>
+        ) : hasDocuments ? (
           <View className="gap-3">
             {documents.map((doc) => (
               <DocumentRow
@@ -173,7 +222,7 @@ export default function DocumentDetailsScreen() {
               />
             ))}
           </View>
-        ) : (
+        ) : showEmptyState ? (
           <View className="items-center gap-4 rounded-3xl bg-white px-6 py-12">
             <MaterialIcons
               name="insert-drive-file"
@@ -192,7 +241,7 @@ export default function DocumentDetailsScreen() {
               <Text className="text-sm font-semibold text-primary-700">Volver</Text>
             </Pressable>
           </View>
-        )}
+        ) : null}
 
         {error ? (
           <View className="mt-6 rounded-3xl bg-white px-5 py-4">

@@ -183,7 +183,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         async function runWithForeignKeyRetry<T>(
-          operation: () => Promise<{ data: T | null; error: { code?: string; message: string } | null }>,
+          operation: () => Promise<{
+            data: T | null;
+            error: { code?: string; message: string } | null;
+          }>,
           fallbackMessage: string,
         ): Promise<T | null> {
           let lastError: { code?: string; message: string } | null = null;
@@ -319,13 +322,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const nowIso = new Date().toISOString();
 
-        const targetTimeZone =
-          defaultTimeZone ?? targetCompany.default_time_zone ?? 'UTC';
+        const targetTimeZone = defaultTimeZone ?? targetCompany.default_time_zone ?? 'UTC';
 
         const profilePayload = {
           user_id: userId,
           full_name:
-            normalizedFullName.length > 0 ? normalizedFullName : email.split('@')[0] ?? email,
+            normalizedFullName.length > 0 ? normalizedFullName : (email.split('@')[0] ?? email),
           preferred_name: firstName ?? null,
           time_zone: targetTimeZone,
           locale: 'es',
@@ -358,12 +360,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             supabase
               .from('company_members')
               .upsert(membershipPayload, { onConflict: 'company_id,user_id' })
-              .select('id, company_id, role')
+              .select('id, company_id, role, status')
               .single(),
           'No pudimos crear tu membresía en la empresa.',
         );
 
-        if (membershipRow && membershipRow.role === 'admin') {
+        if (membershipRow?.id) {
           await runWithForeignKeyRetry(
             () =>
               supabase
@@ -372,7 +374,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   {
                     company_id: membershipRow.company_id,
                     member_id: membershipRow.id,
-                    is_active: true,
+                    is_active: membershipRow.status === 'active',
                   },
                   { onConflict: 'member_id' },
                 )

@@ -1,8 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Fragment, useCallback } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { Skeleton } from '@/components/Skeleton';
 import { useEmployeeDocuments } from '@/hooks/useEmployeeDocuments';
 import { DOCUMENT_TYPE_LABELS } from '@/types/screens/documents';
 
@@ -14,7 +15,8 @@ function formatCount(count: number) {
 
 export default function DocumentsScreen() {
   const router = useRouter();
-  const { groups, isLoading, error, refresh } = useEmployeeDocuments();
+  const { groups, hasLoaded, isLoading, error, refresh } = useEmployeeDocuments();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -22,13 +24,28 @@ export default function DocumentsScreen() {
     }, [refresh]),
   );
 
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, refresh]);
+
   return (
-    <View className="flex-1 bg-slate-100">
+    <View>
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refresh}
+            refreshing={isRefreshing}
+            onRefresh={() => {
+              void handleRefresh();
+            }}
             tintColor={PRIMARY_COLOR}
           />
         }
@@ -68,9 +85,13 @@ export default function DocumentsScreen() {
                     <Text className="text-base font-semibold text-slate-900">
                       {DOCUMENT_TYPE_LABELS[group.key]}
                     </Text>
-                    <Text className="mt-1 text-sm text-slate-500">
-                      {formatCount(group.documents.length)}
-                    </Text>
+                    {!hasLoaded || isLoading ? (
+                      <Skeleton className="mt-1 h-3 w-24 rounded-full" />
+                    ) : (
+                      <Text className="mt-1 text-sm text-slate-500">
+                        {formatCount(group.documents.length)}
+                      </Text>
+                    )}
                   </View>
                   <MaterialIcons
                     name="chevron-right"
@@ -88,7 +109,7 @@ export default function DocumentsScreen() {
             </View>
           ) : null}
 
-          {groups.every((group) => group.documents.length === 0) && !isLoading ? (
+          {hasLoaded && !isLoading && groups.every((group) => group.documents.length === 0) ? (
             <View className="mt-6 items-center gap-3 rounded-3xl bg-white px-6 py-10">
               <MaterialIcons
                 name="insert-drive-file"
