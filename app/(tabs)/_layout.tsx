@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { Redirect, Tabs, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Alert, Pressable } from 'react-native';
 
 import { NavMenu } from '@/components/custom/NavMenu';
 import { HapticTab } from '@/components/haptic-tab';
@@ -55,8 +55,7 @@ export default function TabLayout() {
           headerStyle: {
             backgroundColor: palette.tint,
             borderBottomWidth: 0,
-            elevation: 0,
-            shadowOpacity: 0,
+            boxShadow: 'none',
           },
           headerTitleStyle: {
             fontSize: 20,
@@ -143,9 +142,14 @@ export default function TabLayout() {
         visible={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onNavigate={handleNavigate}
-        onLogout={() => {
+        onLogout={async () => {
           setIsMenuOpen(false);
-          signOut();
+          try {
+            await signOut();
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'No pudimos cerrar tu sesión.';
+            Alert.alert('Error al cerrar sesión', message);
+          }
         }}
         user={user}
       />

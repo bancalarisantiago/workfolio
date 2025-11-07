@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/cn';
@@ -22,9 +22,11 @@ export default function HomeScreen() {
     },
   ];
 
-  const greetingName = user?.firstName?.toUpperCase() ?? 'USUARIO';
+  const toUpper = (value?: string | null) => (value ? value.toUpperCase() : undefined);
+  const greetingName = toUpper(user?.firstName) ?? 'USUARIO';
   const formattedFullName = user
-    ? `${user.lastName.toUpperCase()}, ${user.firstName.toUpperCase()}`
+    ? [toUpper(user?.lastName), toUpper(user?.firstName)].filter(Boolean).join(', ') ||
+      'Usuario Invitado'
     : 'Usuario Invitado';
 
   return (
@@ -33,7 +35,7 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: 32 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="rounded-b-[32px] bg-primary-600 px-6 pb-12 pt-2 shadow-lg">
+      <View className="rounded-b-[32px] bg-primary-600 px-6 pb-12 pt-2">
         <Text className="mt-10 text-2xl font-semibold uppercase text-white">
           ¡Bienvenido {greetingName}!
         </Text>
@@ -43,7 +45,7 @@ export default function HomeScreen() {
       </View>
 
       <View className="-mt-10 px-6">
-        <View className="rounded-3xl bg-white p-5 shadow-xl">
+        <View className="rounded-3xl bg-white p-5">
           <View className="flex-row items-center">
             <View className="rounded-full bg-primary-100 p-4">
               <MaterialIcons
@@ -73,10 +75,7 @@ export default function HomeScreen() {
           {pendingCards.map((card, index) => (
             <View
               key={card.id}
-              className={cn(
-                'flex-row items-center rounded-3xl bg-white p-5 shadow-sm',
-                index > 0 && 'mt-4',
-              )}
+              className={cn('flex-row items-center rounded-3xl bg-white p-5', index > 0 && 'mt-4')}
             >
               <View className="rounded-full border border-primary-200 p-3">
                 <MaterialIcons
@@ -93,7 +92,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        <View className="mt-5 items-center rounded-3xl bg-white px-6 py-10 shadow-sm">
+        <View className="mt-5 items-center rounded-3xl bg-white px-6 py-10">
           <View className="rounded-full bg-primary-100 p-4">
             <MaterialIcons
               name="mark-email-read"
@@ -112,7 +111,17 @@ export default function HomeScreen() {
             isAuthLoading && 'opacity-60',
           )}
           disabled={isAuthLoading}
-          onPress={signOut}
+          onPress={() => {
+            void (async () => {
+              try {
+                await signOut();
+              } catch (error) {
+                const message =
+                  error instanceof Error ? error.message : 'No pudimos cerrar tu sesión.';
+                Alert.alert('Error al cerrar sesión', message);
+              }
+            })();
+          }}
         >
           <Text className="text-base font-semibold text-primary-700">Cerrar sesión</Text>
         </Pressable>

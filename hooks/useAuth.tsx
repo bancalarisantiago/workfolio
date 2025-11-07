@@ -1,5 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import type { Session, User } from '@supabase/supabase-js';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { supabase } from '@/lib/supabase';
 import type {
   AuthContextValue,
   AuthProviderProps,
@@ -9,65 +11,453 @@ import type {
   RegisterPayload,
 } from '@/types/hooks/auth';
 
-const DEFAULT_USER_PROFILE: AuthUser = {
-  id: 'mock-user',
-  firstName: 'Santiago',
-  lastName: 'Bancalari',
-  email: 'santiago@example.com',
-  cuil: '20-32242925-9',
-  companyName: 'Midas',
-  companyDescription: 'Soluciones Tecnológicas',
-};
+type SupabaseMetadata = Record<string, unknown>;
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const toNullableString = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === 'number') {
+    return String(value);
+  }
+
+  return null;
+};
+
+const deriveNameParts = (metadata: SupabaseMetadata) => {
+  const firstName = toNullableString(metadata.firstName) ?? toNullableString(metadata.first_name);
+  const lastName = toNullableString(metadata.lastName) ?? toNullableString(metadata.last_name);
+  const fullName = toNullableString(metadata.fullName) ?? toNullableString(metadata.full_name);
+
+  if (firstName && lastName) {
+    return { firstName, lastName };
+  }
+
+  if (fullName) {
+    const [first, ...rest] = fullName.split(' ').filter(Boolean);
+    return {
+      firstName: first ?? firstName ?? null,
+      lastName: rest.length > 0 ? rest.join(' ') : (lastName ?? null),
+    };
+  }
+
+  return { firstName, lastName };
+};
+
+const mapSupabaseUserToAuthUser = (supabaseUser: User | null): AuthUser | null => {
+  if (!supabaseUser) {
+    return null;
+  }
+
+  const metadata = (supabaseUser.user_metadata ?? {}) as SupabaseMetadata;
+  const { firstName, lastName } = deriveNameParts(metadata);
+
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email ?? null,
+    firstName,
+    lastName,
+    cuil: toNullableString(metadata.cuil) ?? toNullableString(metadata.CUIL),
+    companyName: toNullableString(metadata.companyName) ?? toNullableString(metadata.company_name),
+    companyDescription:
+      toNullableString(metadata.companyDescription) ??
+      toNullableString(metadata.company_description),
+    companyCode: toNullableString(metadata.companyCode) ?? toNullableString(metadata.company_code),
+  };
+};
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  const simulateNetworkDelay = useCallback(async () => {
-    setIsAuthLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setIsAuthLoading(false);
+  const applySession = useCallback((session: Session | null) => {
+    const sessionUser = mapSupabaseUserToAuthUser(session?.user ?? null);
+    setUser(sessionUser);
+    setIsAuthenticated(Boolean(sessionUser));
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrap = async () => {
+      setIsAuthLoading(true);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!isMounted) {
+          return;
+        }
+
+        if (error) {
+          console.error('[AuthProvider] Failed to restore session', error);
+          applySession(null);
+          return;
+        }
+
+        applySession(data.session ?? null);
+      } finally {
+        if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      }
+    };
+
+    void bootstrap();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_, session) => {
+      if (!isMounted) {
+        return;
+      }
+
+      applySession(session ?? null);
+      setIsAuthLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, [applySession]);
+
   const signIn = useCallback(
-    async ({ email }: CredentialsPayload) => {
-      await simulateNetworkDelay();
-      setUser({ ...DEFAULT_USER_PROFILE, email });
-      setIsAuthenticated(true);
+    async (credentials: CredentialsPayload) => {
+      setIsAuthLoading(true);
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword(credentials);
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        applySession(data.session ?? null);
+      } finally {
+        setIsAuthLoading(false);
+      }
     },
-    [simulateNetworkDelay],
+    [applySession],
   );
 
   const register = useCallback(
-    async ({ email, fullName }: RegisterPayload) => {
-      await simulateNetworkDelay();
-      const [firstName = DEFAULT_USER_PROFILE.firstName, ...rest] = (fullName ?? '').split(' ');
-      const lastName = rest.join(' ') || DEFAULT_USER_PROFILE.lastName;
-      setUser({
-        ...DEFAULT_USER_PROFILE,
-        firstName,
-        lastName,
-        email,
-      });
-      setIsAuthenticated(true);
+    async ({
+      email,
+      password,
+      fullName,
+      companyCode,
+      companyName,
+      countryCode,
+      defaultTimeZone,
+      industry,
+      billingEmail,
+      companyDescription,
+    }: RegisterPayload) => {
+      setIsAuthLoading(true);
+      try {
+        const normalizedFullName = fullName?.trim() ?? '';
+        const [firstName, ...rest] = normalizedFullName.split(' ').filter(Boolean);
+        const lastName = rest.length > 0 ? rest.join(' ') : null;
+
+        const authMetadata: Record<string, unknown> = {
+          fullName: normalizedFullName || null,
+          firstName: firstName ?? null,
+          lastName,
+        };
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: authMetadata,
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const userId = data.user?.id;
+        if (!userId) {
+          throw new Error('No pudimos completar el registro del usuario.');
+        }
+
+        async function runWithForeignKeyRetry<T>(
+          operation: () => Promise<{
+            data: T | null;
+            error: { code?: string; message: string } | null;
+          }>,
+          fallbackMessage: string,
+        ): Promise<T | null> {
+          let lastError: { code?: string; message: string } | null = null;
+
+          for (let attempt = 0; attempt < 10; attempt += 1) {
+            const result = await operation();
+            if (!result.error) {
+              return result.data ?? null;
+            }
+
+            lastError = result.error;
+
+            if (result.error.code !== '23503') {
+              throw new Error(result.error.message);
+            }
+
+            const delay = Math.min(500 * 2 ** attempt, 4000);
+            await new Promise((resolve) => {
+              setTimeout(resolve, delay);
+            });
+          }
+
+          throw new Error(lastError?.message ?? fallbackMessage);
+        }
+
+        const ensureUniqueCompanyCode = async (name: string) => {
+          const sanitized = name
+            .replace(/[^a-zA-Z0-9]/g, ' ')
+            .split(' ')
+            .filter(Boolean)
+            .map((token) => token.slice(0, 3).toUpperCase())
+            .join('');
+
+          const base = (sanitized.length > 0 ? sanitized : 'COMPANY').slice(0, 8);
+
+          for (let attempt = 0; attempt < 6; attempt += 1) {
+            const suffix = Math.floor(Math.random() * 9000 + 1000).toString();
+            const candidate = `${base}-${suffix}`.toUpperCase();
+            const { data: match, error: lookupError } = await supabase
+              .from('companies')
+              .select('id')
+              .eq('company_code', candidate)
+              .maybeSingle();
+
+            if (lookupError) {
+              throw new Error(lookupError.message);
+            }
+
+            if (!match) {
+              return candidate;
+            }
+          }
+
+          throw new Error(
+            'No pudimos generar un código único para tu empresa. Intentá nuevamente en unos instantes.',
+          );
+        };
+
+        let trimmedCompanyCode = companyCode?.trim().toUpperCase() ?? undefined;
+        let existingCompany: Record<string, any> | null = null;
+        let descriptionFromCompany: string | null = null;
+
+        if (trimmedCompanyCode) {
+          const { data: companyMatch, error: companyLookupError } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('company_code', trimmedCompanyCode)
+            .maybeSingle();
+
+          if (companyLookupError) {
+            throw new Error(companyLookupError.message);
+          }
+
+          existingCompany = companyMatch;
+
+          if (existingCompany?.metadata && typeof existingCompany.metadata === 'object') {
+            const metadataDescription = (existingCompany.metadata as Record<string, unknown>)
+              .description;
+            if (typeof metadataDescription === 'string' && metadataDescription.length > 0) {
+              descriptionFromCompany = metadataDescription;
+            }
+          }
+        }
+
+        if (!trimmedCompanyCode) {
+          if (!companyName || !countryCode || !defaultTimeZone) {
+            throw new Error(
+              'Para crear una nueva empresa completá el nombre, el país (ISO 3166-1) y el huso horario.',
+            );
+          }
+
+          trimmedCompanyCode = await ensureUniqueCompanyCode(companyName);
+        }
+
+        let targetCompany = existingCompany;
+
+        if (!targetCompany) {
+          if (!companyName || !countryCode || !defaultTimeZone) {
+            throw new Error(
+              'Para crear una nueva empresa completá el nombre, el país (ISO 3166-1) y el huso horario.',
+            );
+          }
+
+          const companyPayload = {
+            name: companyName,
+            company_code: trimmedCompanyCode,
+            country_code: countryCode.toUpperCase(),
+            default_time_zone: defaultTimeZone,
+            plan_tier: 'trial',
+            industry: industry ?? null,
+            billing_email: billingEmail ?? null,
+            metadata: companyDescription ? { description: companyDescription } : {},
+            created_by: userId,
+          };
+
+          const { data: insertedCompany, error: insertError } = await supabase
+            .from('companies')
+            .insert(companyPayload)
+            .select()
+            .single();
+
+          if (insertError) {
+            throw new Error(insertError.message);
+          }
+
+          targetCompany = insertedCompany;
+          descriptionFromCompany = companyDescription ?? null;
+        }
+
+        if (!targetCompany) {
+          throw new Error('No pudimos determinar a qué empresa asociar este usuario.');
+        }
+
+        const nowIso = new Date().toISOString();
+
+        const targetTimeZone = defaultTimeZone ?? targetCompany.default_time_zone ?? 'UTC';
+
+        const profilePayload = {
+          user_id: userId,
+          full_name:
+            normalizedFullName.length > 0 ? normalizedFullName : (email.split('@')[0] ?? email),
+          preferred_name: firstName ?? null,
+          time_zone: targetTimeZone,
+          locale: 'es',
+          avatar_url: null,
+          phone: null,
+          bio: descriptionFromCompany,
+        };
+
+        await runWithForeignKeyRetry(
+          () =>
+            supabase
+              .from('user_profiles')
+              .upsert(profilePayload, { onConflict: 'user_id' })
+              .select('user_id')
+              .single(),
+          'No pudimos crear tu perfil.',
+        );
+
+        const membershipPayload = {
+          company_id: targetCompany.id,
+          user_id: userId,
+          role: existingCompany ? 'employee' : 'admin',
+          status: 'active',
+          invited_at: nowIso,
+          joined_at: nowIso,
+        };
+
+        const membershipRow = await runWithForeignKeyRetry(
+          () =>
+            supabase
+              .from('company_members')
+              .upsert(membershipPayload, { onConflict: 'company_id,user_id' })
+              .select('id, company_id, role, status')
+              .single(),
+          'No pudimos crear tu membresía en la empresa.',
+        );
+
+        if (membershipRow?.id) {
+          await runWithForeignKeyRetry(
+            () =>
+              supabase
+                .from('employee_profiles')
+                .upsert(
+                  {
+                    company_id: membershipRow.company_id,
+                    member_id: membershipRow.id,
+                    is_active: membershipRow.status === 'active',
+                  },
+                  { onConflict: 'member_id' },
+                )
+                .select('id')
+                .single(),
+            'No pudimos crear el perfil de empleado.',
+          );
+        }
+
+        if (targetCompany.metadata && typeof targetCompany.metadata === 'object') {
+          const metadataDescription = (targetCompany.metadata as Record<string, unknown>)
+            .description;
+          if (!descriptionFromCompany && typeof metadataDescription === 'string') {
+            descriptionFromCompany = metadataDescription;
+          }
+        }
+
+        if (targetCompany && data.session) {
+          const { error: updateUserError } = await supabase.auth.updateUser({
+            data: {
+              companyName: targetCompany.name,
+              companyDescription: descriptionFromCompany ?? null,
+              companyCode: trimmedCompanyCode,
+            },
+          });
+
+          if (updateUserError) {
+            console.warn(
+              '[AuthProvider] Failed to update user metadata after signup',
+              updateUserError,
+            );
+          }
+        }
+
+        applySession(data.session ?? null);
+        return { emailConfirmationRequired: !data.session };
+      } finally {
+        setIsAuthLoading(false);
+      }
     },
-    [simulateNetworkDelay],
+    [applySession],
   );
 
-  const signOut = useCallback(() => {
-    setIsAuthenticated(false);
-    setUser(null);
+  const signOut = useCallback(async () => {
+    setIsAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      applySession(null);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }, [applySession]);
+
+  const requestPasswordReset = useCallback(async ({ email }: PasswordResetPayload) => {
+    setIsAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } finally {
+      setIsAuthLoading(false);
+    }
   }, []);
 
-  const requestPasswordReset = useCallback(
-    async (_payload: PasswordResetPayload) => {
-      await simulateNetworkDelay();
-    },
-    [simulateNetworkDelay],
-  );
+  const refreshSession = useCallback(async () => {
+    setIsAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      applySession(data.session ?? null);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }, [applySession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -78,8 +468,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signOut,
       register,
       requestPasswordReset,
+      refreshSession,
     }),
-    [isAuthenticated, isAuthLoading, register, requestPasswordReset, signIn, signOut, user],
+    [
+      isAuthenticated,
+      isAuthLoading,
+      register,
+      refreshSession,
+      requestPasswordReset,
+      signIn,
+      signOut,
+      user,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

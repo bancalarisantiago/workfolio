@@ -61,9 +61,9 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
     onClose();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose();
-    onLogout();
+    await onLogout();
   };
 
   type FeatherIconName = ComponentProps<typeof Feather>['name'];
@@ -72,13 +72,14 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
     { key: 'home', label: 'Home', path: '/(tabs)/(home)', icon: 'home' },
     { key: 'paychecks', label: 'Recibos', path: '/(tabs)/(paychecks)', icon: 'credit-card' },
     { key: 'documents', label: 'Documents', path: '/(tabs)/(documents)', icon: 'file-text' },
+    { key: 'settings', label: 'Configuración', path: '/settings', icon: 'settings' },
     { key: 'change-pin', label: 'Change PIN', path: '/change-pin', icon: 'lock' },
   ];
 
   return (
     <View
-      pointerEvents={visible ? 'auto' : 'none'}
       className="absolute inset-0 z-50"
+      style={{ pointerEvents: visible ? 'auto' : 'none' }}
     >
       <Animated.View
         className="absolute inset-0 bg-slate-950/70"
@@ -91,10 +92,11 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
       </Animated.View>
 
       <Animated.View
-        className="absolute top-0 bottom-0 right-0 shadow-2xl shadow-slate-900/40"
+        className="absolute top-0 bottom-0 right-0"
         style={{
           width: MENU_WIDTH,
           transform: [{ translateX }],
+          boxShadow: '0px 24px 48px rgba(15, 23, 42, 0.35)',
         }}
       >
         <View
@@ -153,7 +155,9 @@ export function NavMenu({ visible, onClose, onNavigate, onLogout, user }: NavMen
           <View className="mt-auto pb-6">
             <Pressable
               className="flex-row items-center justify-center gap-3 rounded-2xl bg-primary-600 px-5 py-4"
-              onPress={handleLogout}
+              onPress={() => {
+                void handleLogout();
+              }}
             >
               <Feather
                 name="log-out"
