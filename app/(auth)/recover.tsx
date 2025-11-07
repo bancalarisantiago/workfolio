@@ -32,7 +32,8 @@ export default function RecoverScreen() {
       setIsRequestSent(true);
       reset(values);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'No pudimos enviar el correo de recuperación.';
+      const message =
+        error instanceof Error ? error.message : 'No pudimos enviar el correo de recuperación.';
       Alert.alert('Error al recuperar acceso', message);
     }
   };

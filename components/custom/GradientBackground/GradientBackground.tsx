@@ -16,10 +16,7 @@ type GradientBackgroundProps = {
 export function GradientBackground({ children, className }: GradientBackgroundProps) {
   return (
     <View className={cn('flex-1 overflow-hidden', className)}>
-      <Svg
-        pointerEvents="none"
-        style={StyleSheet.absoluteFill}
-      >
+      <Svg style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
         <Defs>
           <SvgLinearGradient
             id="softGradient"

@@ -26,8 +26,7 @@ function AuthGate() {
       {isAuthLoading ? (
         <Center
           bg={colorScheme === 'dark' ? '$backgroundDark950' : '$backgroundLight0'}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="auto"
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'auto' }]}
         >
           <Spinner size="large" />
         </Center>

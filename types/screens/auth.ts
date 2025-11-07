@@ -12,4 +12,11 @@ export type SignUpFormValues = {
   email: string;
   password: string;
   confirmPassword: string;
+  companyCode: string;
+  companyName?: string;
+  countryCode?: string;
+  defaultTimeZone?: string;
+  industry?: string;
+  billingEmail?: string;
+  companyDescription?: string;
 };

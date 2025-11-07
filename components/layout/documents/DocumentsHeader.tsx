@@ -2,7 +2,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { DocumentsHeaderProps } from './types';
 
@@ -12,7 +11,6 @@ export function DocumentsHeader({
   options,
   route,
 }: NativeStackHeaderProps & DocumentsHeaderProps) {
-  const insets = useSafeAreaInsets();
   const title = useMemo(() => {
     if (typeof options.headerTitle === 'string') {
       return options.headerTitle;
@@ -28,7 +26,7 @@ export function DocumentsHeader({
 
   return (
     <View className="bg-primary-600">
-      <View className=" bg-primary-600 px-6 pb-4 pt-4 shadow-sm">
+      <View className=" bg-primary-600 px-6 pb-4 pt-4">
         <View className="flex-row items-center justify-between">
           {back ? (
             <Pressable
